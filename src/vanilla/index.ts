@@ -1,0 +1,1 @@
+export { ChatWidget as DynamiqAssistant } from './ChatWidget'; 

@@ -1,0 +1,59 @@
+{
+  "name": "@dynamic-ai/assistant",
+  "version": "0.1.0",
+  "description": "A chat widget library for React and vanilla JavaScript",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "rollup -c",
+    "dev": "rollup -c -w",
+    "test": "jest",
+    "lint": "eslint src/**/*.{ts,tsx}",
+    "start:react": "parcel examples/react/index.html",
+    "start:vanilla": "parcel examples/vanilla/index.html",
+    "build:examples": "parcel build examples/react/index.html --dist-dir dist/examples --public-url ./"
+  },
+  "keywords": [
+    "chat",
+    "widget",
+    "react",
+    "javascript"
+  ],
+  "author": "Pavlo Kurochka",
+  "license": "MIT",
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^22.0.0",
+    "@rollup/plugin-node-resolve": "^13.3.0",
+    "@rollup/plugin-typescript": "^8.3.2",
+    "@testing-library/jest-dom": "^5.16.4",
+    "@testing-library/react": "^13.2.0",
+    "@types/jest": "^27.5.1",
+    "@types/react": "^18.0.9",
+    "@types/react-dom": "^18.0.4",
+    "@typescript-eslint/eslint-plugin": "^5.25.0",
+    "@typescript-eslint/parser": "^5.25.0",
+    "eslint": "^8.16.0",
+    "eslint-plugin-react": "^7.30.0",
+    "jest": "^28.1.0",
+    "jest-environment-jsdom": "^28.1.0",
+    "parcel": "^2.6.0",
+    "postcss": "^8.4.14",
+    "process": "^0.11.10",
+    "react": "^18.1.0",
+    "react-dom": "^18.1.0",
+    "rollup": "^2.74.1",
+    "rollup-plugin-peer-deps-external": "^2.2.4",
+    "rollup-plugin-postcss": "^4.0.2",
+    "rollup-plugin-terser": "^7.0.2",
+    "ts-jest": "^28.0.2",
+    "typescript": "^4.6.4"
+  },
+  "peerDependencies": {
+    "react": ">=16.8.0",
+    "react-dom": ">=16.8.0"
+  },
+  "dependencies": {
+    "marked": "^4.3.0"
+  }
+}
