@@ -7,7 +7,6 @@ import { marked } from "marked";
 marked.setOptions({
   gfm: true,
   breaks: true,
-  sanitize: true,
 });
 
 export class ChatWidgetCore {
@@ -16,12 +15,12 @@ export class ChatWidgetCore {
   private readonly options: ChatWidgetOptions;
   private isOpen: boolean = false;
   private widgetElement: HTMLElement | null = null;
-  private apiConfig: ApiConfig | undefined;
+  private readonly apiConfig: ApiConfig | undefined;
   private selectedFiles: File[] = [];
   private isLoading: boolean = false;
   private relativeTimeInterval: NodeJS.Timeout | null = null;
-  private userId: string;
-  private sessionId: string;
+  private readonly userId: string;
+  private readonly sessionId: string;
 
   constructor(container: HTMLElement, options: ChatWidgetOptions = {}) {
     this.container = container;
@@ -622,7 +621,7 @@ export class ChatWidgetCore {
     }
   }
 
-  public updateMessage(messageId: string, text: string) {
+  public async updateMessage(messageId: string, text: string) {
     const message = this.widgetElement?.querySelector(
       `#chat-message-${messageId}`
     );
@@ -630,7 +629,7 @@ export class ChatWidgetCore {
     if (textElement) {
       // Parse markdown for bot messages if markdown is enabled
       if (message?.classList.contains("chat-message-bot")) {
-        textElement.innerHTML = marked(text);
+        textElement.innerHTML = await marked(text);
         textElement.className = "chat-message-text chat-message-markdown";
       } else {
         textElement.textContent = text;
@@ -643,7 +642,7 @@ export class ChatWidgetCore {
     this.renderMessage(message);
   }
 
-  private renderMessage(message: ChatMessage): void {
+  private async renderMessage(message: ChatMessage): Promise<void> {
     const messagesContainer = this.widgetElement?.querySelector(
       ".chat-widget-messages"
     );
@@ -693,7 +692,7 @@ export class ChatWidgetCore {
     } else {
       // Parse markdown if the message is from the bot and markdown is enabled
       if (message.sender === "bot") {
-        textElement.innerHTML = marked(message.text);
+        textElement.innerHTML = await marked(message.text);
         textElement.className += " chat-message-markdown";
       } else {
         textElement.textContent = message.text;
@@ -705,7 +704,6 @@ export class ChatWidgetCore {
     timestamp.className = "chat-message-timestamp";
 
     // Format the timestamp
-    const now = new Date();
     const messageTime = message.timestamp;
     let timeText = getRelativeTimeString(messageTime);
 
