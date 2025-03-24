@@ -7,35 +7,56 @@ import postcss from 'rollup-plugin-postcss';
 
 const packageJson = require('./package.json');
 
+const getPlugins = (tsconfig) => [
+  peerDepsExternal(),
+  resolve(),
+  commonjs(),
+  typescript({ tsconfig }),
+  postcss({
+    extensions: ['.css'],
+    minimize: true,
+    inject: {
+      insertAt: 'top',
+    },
+  }),
+  terser(),
+];
+const external = [...Object.keys(packageJson.peerDependencies || {})];
+
 export default [
+  // React bundle
   {
-    input: 'src/index.ts',
+    input: 'src/react/index.ts',
     output: [
       {
-        file: packageJson.main,
+        file: 'dist/react/index.js',
         format: 'cjs',
         sourcemap: true,
       },
       {
-        file: packageJson.module,
+        file: 'dist/react/index.esm.js',
         format: 'esm',
         sourcemap: true,
       },
     ],
-    plugins: [
-      peerDepsExternal(),
-      resolve(),
-      commonjs(),
-      typescript({ tsconfig: './tsconfig.json' }),
-      postcss({
-        extensions: ['.css'],
-        minimize: true,
-        inject: {
-          insertAt: 'top',
-        },
-      }),
-      terser(),
+    plugins: getPlugins('./tsconfig.react.json'),
+    external,
+  },
+  {
+    input: 'src/vanilla/index.ts',
+    output: [
+      {
+        file: 'dist/vanilla/index.js',
+        format: 'cjs',
+        sourcemap: true,
+      },
+      {
+        file: 'dist/vanilla/index.esm.js',
+        format: 'esm',
+        sourcemap: true,
+      },
     ],
-    external: ['react', 'react-dom'],
+    plugins: getPlugins('./tsconfig.vanilla.json'),
+    external,
   },
 ]; 
