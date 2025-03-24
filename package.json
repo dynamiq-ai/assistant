@@ -1,5 +1,5 @@
 {
-  "name": "@dynamic-ai/assistant",
+  "name": "@dynamiq-ai/assistant",
   "version": "0.1.0",
   "description": "A chat widget library for React and vanilla JavaScript",
   "files": [
