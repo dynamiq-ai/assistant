@@ -43,7 +43,7 @@ const App = () => {
 
 You should be able to see the assistant embedded in your app
 
-<img width="858" alt="image" src="https://github.com/user-attachments/assets/bb5ba072-2820-4e62-a4c3-3a4ddb000e1d">
+<img height="300" alt="image" src="https://github.com/user-attachments/assets/bb5ba072-2820-4e62-a4c3-3a4ddb000e1d">
 
 ## Props
 
