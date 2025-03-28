@@ -705,7 +705,7 @@ export class ChatWidgetCore {
 
     // Format the timestamp
     const messageTime = message.timestamp;
-    let timeText = getRelativeTimeString(messageTime);
+    const timeText = getRelativeTimeString(messageTime);
 
     timestamp.textContent = timeText;
 
