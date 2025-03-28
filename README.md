@@ -1,11 +1,11 @@
-# Dynamic Assistant
+# Dynamiq Assistant
 
 A customizable chat widget for React and vanilla JavaScript applications.
 
 ## Installation
 
 ```bash
-npm install @dynamic-ai/assistant
+npm install @dynamiq-ai/assistant
 ```
 
 ## Usage
