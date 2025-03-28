@@ -1,5 +1,5 @@
 {
-  "name": "@dynamic-ai/assistant",
+  "name": "@dynamiq-ai/assistant",
   "version": "0.1.0",
   "description": "A chat widget library for React and vanilla JavaScript",
   "files": [
@@ -8,6 +8,29 @@
   "main": "dist/index.js",
   "module": "dist/index.esm.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.esm.js",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./react": {
+      "import": "./dist/react/index.esm.js",
+      "require": "./dist/react/index.js",
+      "types": "./dist/react/types/react/index.d.ts"
+    },
+    "./vanilla": {
+      "import": "./dist/vanilla/index.esm.js",
+      "require": "./dist/vanilla/index.js",
+      "types": "./dist/vanilla/types/vanilla/index.d.ts"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "react": ["dist/react/types/react/index.d.ts"],
+      "vanilla": ["dist/vanilla/types/vanilla/index.d.ts"]
+    }
+  },
   "scripts": {
     "build": "rollup -c",
     "dev": "rollup -c -w",
@@ -28,7 +51,7 @@
   "devDependencies": {
     "@rollup/plugin-commonjs": "^22.0.0",
     "@rollup/plugin-node-resolve": "^13.3.0",
-    "@rollup/plugin-typescript": "^8.3.2",
+    "@rollup/plugin-typescript": "^12.1.2",
     "@testing-library/jest-dom": "^5.16.4",
     "@testing-library/react": "^13.2.0",
     "@types/jest": "^27.5.1",
