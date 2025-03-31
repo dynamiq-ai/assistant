@@ -1,6 +1,6 @@
 {
-  "name": "@dynamiq-ai/assistant",
-  "version": "0.1.0",
+  "name": "@dynamiq/assistant",
+  "version": "0.1.3",
   "description": "A chat widget library for React and vanilla JavaScript",
   "files": [
     "dist"
@@ -35,6 +35,14 @@
       ]
     }
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dynamiq-ai/assistant.git"
+  },
+  "bugs": {
+    "url": "https://github.com/dynamiq-ai/assistant/issues"
+  },
+  "homepage": "https://github.com/dynamiq-ai/assistant#readme",
   "scripts": {
     "build": "rollup -c",
     "dev": "rollup -c -w",
@@ -51,7 +59,7 @@
     "javascript"
   ],
   "author": "Pavlo Kurochka",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "devDependencies": {
     "@eslint/js": "^9.23.0",
     "@rollup/plugin-commonjs": "^22.0.0",
