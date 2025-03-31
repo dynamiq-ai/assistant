@@ -9,7 +9,7 @@
 ## Install
 
 ```bash
-npm install @dynamiq/assistant
+npm install @dynamiq/assistant marked@15
 ```
 
 ## Usage
