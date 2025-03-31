@@ -16,7 +16,7 @@ npm install @dynamiq/assistant
 
 To use `@dynamiq/assistant`, first you have to go to the Deployments, make sure you have disabled `Endpoint Authorization`. Then click on the `Endpoint` tab and copy the url from `endpoint` variable.
 
-<img width="1496" alt="image" src="https://github.com/user-attachments/assets/97fccbc1-772d-4d94-b364-db10ddd9ef4a">
+<img width="1496" alt="image" src="./assets/dynamiq-app.png">
 
 You can copy the URL and pass it to the `<DynamiqAssistant />` component in react:
 
@@ -43,7 +43,7 @@ const App = () => {
 
 You should be able to see the assistant embedded in your app
 
-<img height="525" alt="image" src="https://github.com/user-attachments/assets/bb5ba072-2820-4e62-a4c3-3a4ddb000e1d">
+<img height="525" alt="image" src="./assets/widget-preview.png">
 
 ## Props
 
