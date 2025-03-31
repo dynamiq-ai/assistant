@@ -27,17 +27,14 @@ export const ChatWidget: React.FC<ChatWidgetProps> = (props) => {
   // Update options if they change
   useEffect(() => {
     if (widgetRef.current) {
-      // In a real implementation, you'd need to add a method to update options
-      // For now, we'll just destroy and recreate the widget
-      widgetRef.current.destroy();
-      if (containerRef.current) {
-        widgetRef.current = new ChatWidgetCore(containerRef.current, props);
-      }
+      widgetRef.current.updateParams(props.params);
     }
-  }, [props]);
+  }, [props.params]);
 
-  return <div ref={containerRef} className={props.className} style={props.style} />;
-}; 
+  return (
+    <div ref={containerRef} className={props.className} style={props.style} />
+  );
+};
 
 export const DynamiqAssistant = ChatWidget;
 export type DynamiqAssistantProps = ChatWidgetProps;

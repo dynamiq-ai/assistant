@@ -36,6 +36,12 @@ const App = () => {
       allowFileUpload={true}
       maxFileSize={10 * 1024 * 1024} // 10MB
       acceptedFileTypes="image/*,.pdf,.doc,.docx,.txt"
+      params={{
+        userId: "123",
+        sessionId: "234",
+        userName: "John Doe",
+        language: "en",
+      }}
     />
   );
 };
@@ -59,3 +65,6 @@ These are all the props you can pass to the `<DynamiqAssistant />` component.
 | `allowFileUpload`   | `boolean` | Whether to allow file uploads.                                                                   |
 | `maxFileSize`       | `number`  | The maximum file size for file uploads in bytes.                                                 |
 | `acceptedFileTypes` | `string`  | The accepted file types for file uploads.                                                        |
+| `params`            | `object`  | The parameters to pass to the assistant input.                                                   |
+| `params.userId`     | `string`  | The user ID. By default `crypto.randomUUID()`.                                                   |
+| `params.sessionId`  | `string`  | The session ID. By default `crypto.randomUUID()`.                                                |

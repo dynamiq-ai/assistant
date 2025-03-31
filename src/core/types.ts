@@ -10,8 +10,13 @@ export interface ApiConfig {
   url: string;
   headers?: Record<string, string>;
   streaming?: boolean;
-  userId?: string;
-  sessionId?: string;
+}
+
+export interface CustomParams {
+  userId: string;
+  sessionId: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [key: string]: any;
 }
 
 export interface ChatWidgetOptions {
@@ -27,4 +32,10 @@ export interface ChatWidgetOptions {
   allowFileUpload?: boolean;
   maxFileSize?: number; // in bytes
   acceptedFileTypes?: string; // MIME types or extensions
-} 
+  params?: {
+    userId?: string;
+    sessionId?: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    [key: string]: any;
+  };
+}
