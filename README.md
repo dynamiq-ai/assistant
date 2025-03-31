@@ -9,19 +9,19 @@
 ## Install
 
 ```bash
-npm install @dynamiq-ai/assistant
+npm install @dynamiq/assistant
 ```
 
 ## Usage
 
-To use `@dynamiq-ai/assistant`, first you have to go to the Deployments, make sure you have disabled `Endpoint Authorization`. Then click on the `Endpoint` tab and copy the url from `endpoint` variable.
+To use `@dynamiq/assistant`, first you have to go to the Deployments, make sure you have disabled `Endpoint Authorization`. Then click on the `Endpoint` tab and copy the url from `endpoint` variable.
 
 <img width="1496" alt="image" src="https://github.com/user-attachments/assets/97fccbc1-772d-4d94-b364-db10ddd9ef4a">
 
 You can copy the URL and pass it to the `<DynamiqAssistant />` component in react:
 
 ```tsx
-import { DynamiqAssistant } from "@dynamiq-ai/assistant/react";
+import { DynamiqAssistant } from "@dynamiq/assistant/react";
 
 const App = () => {
   return (

@@ -1,5 +1,5 @@
 {
-  "name": "@dynamiq-ai/assistant",
+  "name": "@dynamiq/assistant",
   "version": "0.1.0",
   "description": "A chat widget library for React and vanilla JavaScript",
   "files": [
@@ -51,7 +51,7 @@
     "javascript"
   ],
   "author": "Pavlo Kurochka",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "devDependencies": {
     "@eslint/js": "^9.23.0",
     "@rollup/plugin-commonjs": "^22.0.0",
