@@ -35,6 +35,14 @@
       ]
     }
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dynamiq-ai/assistant.git"
+  },
+  "bugs": {
+    "url": "https://github.com/dynamiq-ai/assistant/issues"
+  },
+  "homepage": "https://github.com/dynamiq-ai/assistant#readme",
   "scripts": {
     "build": "rollup -c",
     "dev": "rollup -c -w",
