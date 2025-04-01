@@ -6,7 +6,7 @@ const chatWidget = new DynamiqAssistant('#chat-container', {
   placeholder: 'Type your message...',
   position: 'bottom-left',
   api: {
-    url: 'https://c312dfe2-5dbf-44f3-a497-898325283434.apps.sandbox.getdynamiq.ai',
+    url: '',
     streaming: false,
   },
   allowFileUpload: false,
