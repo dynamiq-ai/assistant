@@ -41,7 +41,6 @@
 .chat-widget-container {
   position: absolute;
   bottom: 70px;
-  right: 0;
   width: 400px;
   height: 600px;
   background-color: white;
@@ -50,6 +49,27 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+}
+
+/* Add these rules for different positions */
+.chat-widget-bottom-right .chat-widget-container {
+  right: 0;
+}
+
+.chat-widget-bottom-left .chat-widget-container {
+  left: 0;
+}
+
+.chat-widget-top-right .chat-widget-container {
+  right: 0;
+  bottom: auto;
+  top: 70px;
+}
+
+.chat-widget-top-left .chat-widget-container {
+  left: 0;
+  bottom: auto;
+  top: 70px;
 }
 
 .chat-widget-header {
