@@ -18,10 +18,12 @@ To use `@dynamiq/assistant`, first you have to go to the Deployments, make sure 
 
 <img width="1496" alt="image" src="https://raw.githubusercontent.com/dynamiq-ai/assistant/refs/heads/chore/package-configs/assets/dynamiq-app.png">
 
-You can copy the URL and pass it to the `<DynamiqAssistant />` component in react:
+You can copy the URL and pass it to the configuration for DynamiqAssistant:
+
+### React
 
 ```tsx
-import { DynamiqAssistant } from "@dynamiq/assistant/react";
+import { DynamiqAssistant } from '@dynamiq/assistant/react';
 
 const App = () => {
   return (
@@ -30,21 +32,40 @@ const App = () => {
       placeholder="Type your message..."
       position="bottom-right"
       api={{
-        url: "<YOUR_API_URL>",
+        url: '<YOUR_API_URL>',
         streaming: true,
       }}
       allowFileUpload={true}
       maxFileSize={10 * 1024 * 1024} // 10MB
       acceptedFileTypes="image/*,.pdf,.doc,.docx,.txt"
       params={{
-        userId: "123",
-        sessionId: "234",
-        userName: "John Doe",
-        language: "en",
+        userId: '123',
+        sessionId: '234',
+        userName: 'John Doe',
+        language: 'en',
       }}
     />
   );
 };
+```
+
+### Vanilla
+
+```js
+import { DynamiqAssistant } from '@dynamiq/assistant/vanilla';
+
+const assistant = new DynamiqAssistant('#dynamiq-assistant-container', {
+  title: 'Dynamiq Assistant',
+  placeholder: 'Type your message...',
+  position: 'bottom-left',
+  api: {
+    url: '<YOUR_API_URL>',
+    streaming: false,
+  },
+  allowFileUpload: false,
+  maxFileSize: 5 * 1024 * 1024, // 5MB
+  acceptedFileTypes: 'image/*,.pdf',
+});
 ```
 
 You should be able to see the assistant embedded in your app

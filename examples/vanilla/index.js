@@ -1,23 +1,18 @@
-import { ChatWidget } from '../../src/vanilla';
+import { DynamiqAssistant } from '../../src/vanilla';
 
 // Initialize the chat widget
-const chatWidget = new ChatWidget('#chat-container', {
-  title: 'Vanilla JS Chat Support',
+const chatWidget = new DynamiqAssistant('#chat-container', {
+  title: 'Dynamiq Assistant',
   placeholder: 'Type your message...',
-  position: 'bottom-right',
-  theme: {
-    primaryColor: '#E91E63',
-    secondaryColor: '#f5f5f5',
-    fontFamily: 'Arial, sans-serif'
-  },
+  position: 'bottom-left',
   api: {
     url: '',
-    streaming: true,
+    streaming: false,
   },
   allowFileUpload: false,
   maxFileSize: 5 * 1024 * 1024, // 5MB
-  acceptedFileTypes: "image/*,.pdf",
+  acceptedFileTypes: 'image/*,.pdf',
 });
 
 // You can also control the widget programmatically
-window.chatWidget = chatWidget; // Expose to window for demo purposes 
+window.chatWidget = chatWidget; // Expose to window for demo purposes

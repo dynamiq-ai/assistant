@@ -9,7 +9,7 @@ const App = () => {
       placeholder="Type your message..."
       position="bottom-right"
       api={{
-        url: 'https://c312dfe2-5dbf-44f3-a497-898325283434.apps.sandbox.getdynamiq.ai',
+        url: '',
         streaming: true,
       }}
       params={{
