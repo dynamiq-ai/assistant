@@ -59,12 +59,12 @@ export default [
     plugins: getPlugins('./tsconfig.vanilla.json'),
     external,
   },
-  // Vanilla bundle for unpkg
+  // Vanilla bundle for browser script tag
   {
     input: 'src/vanilla/index.ts',
     output: [
       {
-        file: 'dist/index.unpkg.js',
+        file: 'dist/index.browser.js',
         format: 'iife',
         name: 'dynamiq',
         sourcemap: true,
