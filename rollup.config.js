@@ -15,9 +15,8 @@ const getPlugins = (tsconfig) => [
   postcss({
     extensions: ['.css'],
     minimize: true,
-    inject: {
-      insertAt: 'top',
-    },
+    inject: true,
+    extract: false,
   }),
   terser(),
 ];
@@ -42,6 +41,7 @@ export default [
     plugins: getPlugins('./tsconfig.react.json'),
     external,
   },
+  // Vanilla bundle
   {
     input: 'src/vanilla/index.ts',
     output: [
@@ -59,4 +59,26 @@ export default [
     plugins: getPlugins('./tsconfig.vanilla.json'),
     external,
   },
-]; 
+  // Vanilla bundle for unpkg
+  {
+    input: 'src/vanilla/index.ts',
+    output: [
+      {
+        file: 'dist/index.unpkg.js',
+        format: 'iife',
+        name: 'dynamiq',
+        sourcemap: true,
+        globals: {
+          marked: 'marked',
+        },
+      },
+    ],
+    plugins: [
+      resolve({
+        browser: true,
+      }),
+      ...getPlugins('./tsconfig.vanilla.json'),
+    ],
+    external: [],
+  },
+];
