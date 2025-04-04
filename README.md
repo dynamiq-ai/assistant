@@ -49,7 +49,9 @@ const App = () => {
 };
 ```
 
-### Vanilla
+### Browser
+
+#### ESM 
 
 ```js
 import { DynamiqAssistant } from '@dynamiq/assistant/vanilla';
@@ -60,7 +62,7 @@ const assistant = new DynamiqAssistant('#dynamiq-assistant-container', {
   position: 'bottom-left',
   api: {
     url: '<YOUR_API_URL>',
-    streaming: false,
+    streaming: true,
   },
   allowFileUpload: false,
   maxFileSize: 5 * 1024 * 1024, // 5MB
@@ -68,9 +70,23 @@ const assistant = new DynamiqAssistant('#dynamiq-assistant-container', {
 });
 ```
 
-You should be able to see the assistant embedded in your app
+#### Script Tag
 
-<img height="525" alt="image" src="https://raw.githubusercontent.com/dynamiq-ai/assistant/refs/heads/chore/package-configs/assets/widget-preview.png">
+```html
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@dynamiq/assistant@latest/dist/index.browser.js"></script>
+<script>
+  const assistant = new dynamiq.DynamiqAssistant('#dynamiq-assistant-container', {
+    title: 'Dynamiq Assistant',
+    placeholder: 'Type your message...',
+    position: 'bottom-left',
+    api: {
+      url: '<YOUR_API_URL>',
+      streaming: true,
+    },
+  });
+</script>
+```
 
 ## Props
 

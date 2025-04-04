@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+    <title>Dynamiq Assistant</title>
+</head>
+
+<body>
+    <div id="dynamiq-assistant"></div>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="../../dist/index.browser.js"></script>
+    <script>
+        const assistant = new dynamiq.DynamiqAssistant('#dynamiq-assistant', {
+            title: 'Dynamiq Assistant',
+            placeholder: 'Type your message...',
+            position: 'bottom-right',
+            api: { url: '', streaming: true },
+            allowFileUpload: false,
+            maxFileSize: 5 * 1024 * 1024, // 5MB
+            acceptedFileTypes: 'image/*,.pdf',
+        });
+    </script>
+</body>
+
+</html>
