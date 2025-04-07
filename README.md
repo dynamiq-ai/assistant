@@ -88,6 +88,10 @@ const assistant = new DynamiqAssistant('#dynamiq-assistant-container', {
 </script>
 ```
 
+You should be able to see the assistant embedded in your app
+
+<img height="525" alt="image" src="https://raw.githubusercontent.com/dynamiq-ai/assistant/refs/heads/chore/package-configs/assets/widget-preview.png">
+
 ## Props
 
 These are all the props you can pass to the `<DynamiqAssistant />` component.
