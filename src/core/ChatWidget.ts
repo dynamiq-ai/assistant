@@ -782,6 +782,8 @@ export class ChatWidgetCore {
   }
 
   public startNewChat(): void {
+    this.params.sessionId = crypto.randomUUID();
+
     // Clear all messages
     this.messages.length = 0;
 
