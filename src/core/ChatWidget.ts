@@ -206,7 +206,9 @@ export class ChatWidgetCore {
     chatContainer.appendChild(footer);
 
     // Assemble the widget
-    widget.appendChild(toggleButton);
+    if (!this.options.toggleButton) {
+      widget.appendChild(toggleButton);
+    }
     widget.appendChild(chatContainer);
 
     // Add to the container
@@ -220,14 +222,19 @@ export class ChatWidgetCore {
   }
 
   private attachEventListeners(): void {
-    if (!this.widgetElement) return;
+    if (!this.widgetElement) {
+      return;
+    }
 
     // Toggle button click
-    const toggleButton = this.widgetElement.querySelector(
-      '.chat-widget-toggle'
-    );
+    const toggleButton = this.options.toggleButton
+      ? document.getElementById(this.options.toggleButton)
+      : this.widgetElement.querySelector('.chat-widget-toggle');
+
     if (toggleButton) {
       toggleButton.addEventListener('click', () => this.toggle());
+    } else {
+      console.warn('Toggle button not found');
     }
 
     // Close button click

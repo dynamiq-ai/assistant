@@ -51,7 +51,7 @@ const App = () => {
 
 ### Browser
 
-#### ESM 
+#### ESM
 
 ```js
 import { DynamiqAssistant } from '@dynamiq/assistant/vanilla';
@@ -76,15 +76,18 @@ const assistant = new DynamiqAssistant('#dynamiq-assistant-container', {
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@dynamiq/assistant@latest/dist/index.browser.js"></script>
 <script>
-  const assistant = new dynamiq.DynamiqAssistant('#dynamiq-assistant-container', {
-    title: 'Dynamiq Assistant',
-    placeholder: 'Type your message...',
-    position: 'bottom-left',
-    api: {
-      url: '<YOUR_API_URL>',
-      streaming: true,
-    },
-  });
+  const assistant = new dynamiq.DynamiqAssistant(
+    '#dynamiq-assistant-container',
+    {
+      title: 'Dynamiq Assistant',
+      placeholder: 'Type your message...',
+      position: 'bottom-left',
+      api: {
+        url: '<YOUR_API_URL>',
+        streaming: true,
+      },
+    }
+  );
 </script>
 ```
 
@@ -109,3 +112,4 @@ These are all the props you can pass to the `<DynamiqAssistant />` component.
 | `params`            | `object`  | The parameters to pass to the assistant input.                                                   |
 | `params.userId`     | `string`  | The user ID. By default `crypto.randomUUID()`.                                                   |
 | `params.sessionId`  | `string`  | The session ID. By default `crypto.randomUUID()`.                                                |
+| `toggleButton`      | `string`  | The ID of the button to toggle the assistant.                                                    |

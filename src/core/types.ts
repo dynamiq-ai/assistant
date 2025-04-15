@@ -28,10 +28,11 @@ export interface ChatWidgetOptions {
     secondaryColor?: string;
     fontFamily?: string;
   };
-  api?: ApiConfig;
   allowFileUpload?: boolean;
   maxFileSize?: number; // in bytes
   acceptedFileTypes?: string; // MIME types or extensions
+  toggleButton?: string; // id of the button to toggle the chat widget
+  api?: ApiConfig;
   params?: {
     userId?: string;
     sessionId?: string;
