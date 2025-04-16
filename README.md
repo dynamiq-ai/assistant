@@ -111,7 +111,7 @@ These are all the props you can pass to the `<DynamiqAssistant />` component.
 
 | Name                   | Type                  | Description                                                                                      |
 | ---------------------- | --------------------- | ------------------------------------------------------------------------------------------------ |
-| `title`                | `string`              | The title of the assistant.                                                                      |
+| `title`                | `string \| ReactNode` | The title of the assistant. Can be string or ReactNode.                                          |
 | `placeholder`          | `string`              | The placeholder text of the chat input.                                                          |
 | `welcomeTitle`         | `string`              | The title of the welcome screen.                                                                 |
 | `welcomeSubtitle`      | `string`              | The subtitle of the welcome screen.                                                              |

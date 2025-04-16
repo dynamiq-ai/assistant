@@ -22,10 +22,15 @@ export const ChatWidget: React.FC<ChatWidgetProps> = (props) => {
           text: prompt.text,
         };
       });
+      const title =
+        typeof props.title === 'string'
+          ? props.title
+          : renderToString(props.title);
 
       widgetRef.current = new ChatWidgetCore(containerRef.current, {
         ...props,
         prompts,
+        title,
       });
     }
 

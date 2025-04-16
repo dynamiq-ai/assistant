@@ -20,7 +20,7 @@ export interface CustomParams {
 }
 
 export interface ChatWidgetOptions {
-  title?: string;
+  title?: string | React.ReactNode;
   placeholder?: string;
   welcomeTitle?: string;
   welcomeSubtitle?: string;

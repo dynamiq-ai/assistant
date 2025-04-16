@@ -118,7 +118,7 @@ export class ChatWidgetCore {
     header.className = 'chat-widget-header';
 
     const title = document.createElement('h3');
-    title.textContent = this.options.title || 'Chat Assistant';
+    title.innerHTML = (this.options.title as string) || 'Chat Assistant';
 
     const headerActions = document.createElement('div');
     headerActions.className = 'chat-widget-header-actions';
