@@ -51,6 +51,9 @@ const App = () => {
           text: 'What is the maximum loan amount?',
         },
       ]}
+      footerText={
+        'Powered by <a href="https://getdynamiq.ai" target="_blank">Dynamiq</a>'
+      }
     />
   );
 };
@@ -129,3 +132,4 @@ These are all the props you can pass to the `<DynamiqAssistant />` component.
 | `theme.secondaryColor` | `string`              | The secondary color of the assistant.                                                            |
 | `theme.fontFamily`     | `string`              | The font family of the assistant.                                                                |
 | `allowFullScreen`      | `boolean`             | Whether to show the full screen button.                                                          |
+| `footerText`           | `string`              | The text to show in the footer.                                                                  |

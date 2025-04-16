@@ -210,8 +210,7 @@ export class ChatWidgetCore {
     // Create footer
     const footer = document.createElement('div');
     footer.className = 'chat-widget-footer';
-    footer.innerHTML =
-      'Powered by <a href="https://getdynamiq.ai" target="_blank">Dynamiq</a>';
+    footer.innerHTML = this.options.footerText || '';
 
     // Add welcome screen
     const welcomeScreen = document.createElement('div');
@@ -249,7 +248,9 @@ export class ChatWidgetCore {
     chatContainer.appendChild(contentContainer);
     chatContainer.appendChild(inputContainer);
     chatContainer.appendChild(humanSupportContainer);
-    chatContainer.appendChild(footer);
+    if (this.options.footerText) {
+      chatContainer.appendChild(footer);
+    }
 
     // Assemble the widget
     if (!this.options.toggleButton) {
@@ -617,8 +618,7 @@ export class ChatWidgetCore {
       let history: { role: string; content: string }[] = [];
 
       if (this.messages.length) {
-        // remove auto-generated message
-        history = this.messages.slice(1).map((m) => ({
+        history = this.messages.map((m) => ({
           role: m.sender === 'bot' ? 'assistant' : 'user',
           content: m.text,
         }));
