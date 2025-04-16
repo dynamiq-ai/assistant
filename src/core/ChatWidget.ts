@@ -198,19 +198,17 @@ export class ChatWidgetCore {
     // Create the human support link
     const humanSupportContainer = document.createElement('div');
     humanSupportContainer.className = 'chat-widget-human-support';
-
-    const humanSupportLink = document.createElement('a');
-    humanSupportLink.href = 'mailto:hello@getdynamiq.ai';
-    humanSupportLink.className = 'chat-widget-human-link';
-    humanSupportLink.innerHTML =
-      'Talk to a human instead <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>';
-
-    humanSupportContainer.appendChild(humanSupportLink);
+    humanSupportContainer.innerHTML = this.options.humanSupport ?? '';
 
     // Create footer
     const footer = document.createElement('div');
     footer.className = 'chat-widget-footer';
     footer.innerHTML = this.options.footerText || '';
+
+    // Add powered by section
+    const poweredByContainer = document.createElement('div');
+    poweredByContainer.className = 'chat-widget-powered-by';
+    poweredByContainer.innerHTML = this.options.poweredBy || '';
 
     // Add welcome screen
     const welcomeScreen = document.createElement('div');
@@ -247,9 +245,14 @@ export class ChatWidgetCore {
     chatContainer.appendChild(header);
     chatContainer.appendChild(contentContainer);
     chatContainer.appendChild(inputContainer);
-    chatContainer.appendChild(humanSupportContainer);
+    if (this.options.humanSupport) {
+      chatContainer.appendChild(humanSupportContainer);
+    }
     if (this.options.footerText) {
       chatContainer.appendChild(footer);
+    }
+    if (this.options.poweredBy) {
+      chatContainer.appendChild(poweredByContainer);
     }
 
     // Assemble the widget

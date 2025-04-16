@@ -133,3 +133,5 @@ These are all the props you can pass to the `<DynamiqAssistant />` component.
 | `theme.fontFamily`     | `string`              | The font family of the assistant.                                                                |
 | `allowFullScreen`      | `boolean`             | Whether to show the full screen button.                                                          |
 | `footerText`           | `string`              | The text to show in the footer.                                                                  |
+| `poweredBy`            | `string`              | The text to show in the powered by section.                                                       |
+| `humanSupport`         | `string`              | The text to show in the human support section.                                                     |

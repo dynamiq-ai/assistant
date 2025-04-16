@@ -25,6 +25,8 @@ export interface ChatWidgetOptions {
   welcomeTitle?: string;
   welcomeSubtitle?: string;
   footerText?: string; // text or html
+  poweredBy?: string; // text or html
+  humanSupport?: string; // text or html
   position?: 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left';
   theme?: {
     primaryColor?: string;
