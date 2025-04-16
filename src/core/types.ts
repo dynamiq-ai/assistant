@@ -22,6 +22,8 @@ export interface CustomParams {
 export interface ChatWidgetOptions {
   title?: string;
   placeholder?: string;
+  welcomeTitle?: string;
+  welcomeSubtitle?: string;
   position?: 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left';
   theme?: {
     primaryColor?: string;

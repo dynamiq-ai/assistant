@@ -31,6 +31,8 @@ export class ChatWidgetCore {
     this.options = {
       title: 'Dynamiq Assistant',
       placeholder: 'Type a message...',
+      welcomeTitle: 'Welcome to Dynamiq',
+      welcomeSubtitle: 'How can I help you today?',
       position: 'bottom-right',
       theme: {
         primaryColor: '#6c5ce7',
@@ -209,13 +211,12 @@ export class ChatWidgetCore {
     // add title and subtitle
     const welcomeTitle = document.createElement('h3');
     welcomeTitle.className = 'chat-widget-welcome-title';
-    welcomeTitle.textContent = 'Welcome to Dynamiq';
+    welcomeTitle.textContent = this.options.welcomeTitle!;
     const welcomeSubtitle = document.createElement('p');
     welcomeSubtitle.className = 'chat-widget-welcome-subtitle';
-    welcomeSubtitle.textContent = 'How can I help you today?';
+    welcomeSubtitle.textContent = this.options.welcomeSubtitle!;
     welcomeScreen.appendChild(welcomeTitle);
     welcomeScreen.appendChild(welcomeSubtitle);
-    // welcomeScreen.innerHTML = 'Welcome to Dynamiq. How can I help you today?';
     contentContainer.appendChild(welcomeScreen);
 
     // Add prompts

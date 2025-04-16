@@ -110,6 +110,8 @@ These are all the props you can pass to the `<DynamiqAssistant />` component.
 | ---------------------- | --------------------- | ------------------------------------------------------------------------------------------------ |
 | `title`                | `string`              | The title of the assistant.                                                                      |
 | `placeholder`          | `string`              | The placeholder text of the chat input.                                                          |
+| `welcomeTitle`         | `string`              | The title of the welcome screen.                                                                 |
+| `welcomeSubtitle`      | `string`              | The subtitle of the welcome screen.                                                               |
 | `position`             | `string`              | The position of the assistant. Can be `bottom-right`, `bottom-left`, `top-right`, or `top-left`. |
 | `api.url`              | `string`              | The URL of the assistant endpoint.                                                               |
 | `api.streaming`        | `boolean`             | Whether to enable response streaming.                                                            |
