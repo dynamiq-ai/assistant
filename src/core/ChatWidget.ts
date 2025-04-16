@@ -133,7 +133,15 @@ export class ChatWidgetCore {
     closeButton.className = 'chat-widget-close';
     closeButton.innerHTML = '&times;';
 
+    const fullScreenButton = document.createElement('button');
+    fullScreenButton.className = 'chat-widget-full-screen';
+    fullScreenButton.innerHTML =
+      '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"></path></svg>';
+
     headerActions.appendChild(newChatButton);
+    if (this.options.allowFullScreen) {
+      headerActions.appendChild(fullScreenButton);
+    }
     headerActions.appendChild(closeButton);
 
     header.appendChild(title);
@@ -278,6 +286,14 @@ export class ChatWidgetCore {
       closeButton.addEventListener('click', () => this.close());
     }
 
+    // Full screen button click
+    const fullScreenButton = this.widgetElement.querySelector(
+      '.chat-widget-full-screen'
+    );
+    if (fullScreenButton) {
+      fullScreenButton.addEventListener('click', () => this.toggleFullScreen());
+    }
+
     // Send button click
     const sendButton = this.widgetElement.querySelector('.chat-widget-send');
     if (sendButton) {
@@ -331,6 +347,21 @@ export class ChatWidgetCore {
     );
     if (newChatButton) {
       newChatButton.addEventListener('click', () => this.startNewChat());
+    }
+  }
+
+  private toggleFullScreen(): void {
+    const chatContainer = this.widgetElement?.querySelector<HTMLDivElement>(
+      '.chat-widget-container'
+    );
+    if (chatContainer) {
+      if (chatContainer.requestFullscreen) {
+        chatContainer.requestFullscreen();
+      }
+
+      if (document.fullscreenElement) {
+        document.exitFullscreen();
+      }
     }
   }
 
