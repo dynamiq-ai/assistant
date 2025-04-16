@@ -1,4 +1,5 @@
-import React, { useEffect, useRef } from 'react';
+import React, { isValidElement, useEffect, useRef } from 'react';
+import { renderToString } from 'react-dom/server';
 import { ChatWidgetCore } from '../core/ChatWidget';
 import { ChatWidgetOptions } from '../core/types';
 
@@ -13,7 +14,19 @@ export const ChatWidget: React.FC<ChatWidgetProps> = (props) => {
 
   useEffect(() => {
     if (containerRef.current && !widgetRef.current) {
-      widgetRef.current = new ChatWidgetCore(containerRef.current, props);
+      const prompts = props.prompts?.map((prompt) => {
+        return {
+          icon: isValidElement(prompt.icon)
+            ? renderToString(prompt.icon)
+            : prompt.icon,
+          text: prompt.text,
+        };
+      });
+
+      widgetRef.current = new ChatWidgetCore(containerRef.current, {
+        ...props,
+        prompts,
+      });
     }
 
     return () => {

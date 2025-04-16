@@ -137,10 +137,15 @@ export class ChatWidgetCore {
     header.appendChild(title);
     header.appendChild(headerActions);
 
+    // Create content container
+    const contentContainer = document.createElement('div');
+    contentContainer.className = 'chat-widget-content';
+
     // Create the messages container
     const messagesContainer = document.createElement('div');
     messagesContainer.className = 'chat-widget-messages';
-
+    messagesContainer.style.display = 'none';
+    contentContainer.appendChild(messagesContainer);
     // Create the input area
     const inputContainer = document.createElement('div');
     inputContainer.className = 'chat-widget-input';
@@ -198,9 +203,41 @@ export class ChatWidgetCore {
     footer.innerHTML =
       'Powered by <a href="https://getdynamiq.ai" target="_blank">Dynamiq</a>';
 
+    // Add welcome screen
+    const welcomeScreen = document.createElement('div');
+    welcomeScreen.className = 'chat-widget-welcome-screen';
+    // add title and subtitle
+    const welcomeTitle = document.createElement('h3');
+    welcomeTitle.className = 'chat-widget-welcome-title';
+    welcomeTitle.textContent = 'Welcome to Dynamiq';
+    const welcomeSubtitle = document.createElement('p');
+    welcomeSubtitle.className = 'chat-widget-welcome-subtitle';
+    welcomeSubtitle.textContent = 'How can I help you today?';
+    welcomeScreen.appendChild(welcomeTitle);
+    welcomeScreen.appendChild(welcomeSubtitle);
+    // welcomeScreen.innerHTML = 'Welcome to Dynamiq. How can I help you today?';
+    contentContainer.appendChild(welcomeScreen);
+
+    // Add prompts
+    if (this.options.prompts) {
+      const promptsContainer = document.createElement('div');
+      promptsContainer.className = 'chat-widget-prompts';
+      this.options.prompts.forEach((prompt) => {
+        const promptElement = document.createElement('button');
+        promptElement.type = 'button';
+        promptElement.className = 'chat-widget-prompt';
+        promptElement.innerHTML = `${prompt.icon} ${prompt.text}`;
+        promptElement.addEventListener('click', () => {
+          this.sendMessage(prompt.text);
+        });
+        promptsContainer.appendChild(promptElement);
+      });
+      welcomeScreen.appendChild(promptsContainer);
+    }
+
     // Assemble the chat container
     chatContainer.appendChild(header);
-    chatContainer.appendChild(messagesContainer);
+    chatContainer.appendChild(contentContainer);
     chatContainer.appendChild(inputContainer);
     chatContainer.appendChild(humanSupportContainer);
     chatContainer.appendChild(footer);
@@ -216,9 +253,6 @@ export class ChatWidgetCore {
 
     // Store references
     this.widgetElement = widget;
-
-    // Add initial bot message
-    this.addBotMessage('Hi! How can I help you today?');
   }
 
   private attachEventListeners(): void {
@@ -405,7 +439,9 @@ export class ChatWidgetCore {
   }
 
   public close(): void {
-    if (!this.isOpen) return;
+    if (!this.isOpen) {
+      return;
+    }
 
     const chatContainer = this.widgetElement?.querySelector<HTMLDivElement>(
       '.chat-widget-container'
@@ -427,7 +463,9 @@ export class ChatWidgetCore {
   }
 
   public sendMessage(text: string): void {
-    if (!text.trim() && this.selectedFiles.length === 0) return;
+    if (!text.trim() && this.selectedFiles.length === 0) {
+      return;
+    }
 
     const message: ChatMessage = {
       id: Date.now().toString(),
@@ -436,6 +474,9 @@ export class ChatWidgetCore {
       timestamp: new Date(),
       files: [...this.selectedFiles], // Include any selected files
     };
+
+    this.hideWelcomeScreen();
+    this.showMessagesContainer();
 
     this.addMessage(message);
 
@@ -455,6 +496,42 @@ export class ChatWidgetCore {
       this.handleApiCommunication(message).finally(() => {
         this.hideLoadingSpinner();
       });
+    }
+  }
+
+  private showWelcomeScreen(): void {
+    const welcomeScreen = this.widgetElement?.querySelector<HTMLDivElement>(
+      '.chat-widget-welcome-screen'
+    );
+    if (welcomeScreen) {
+      welcomeScreen.style.display = 'flex';
+    }
+  }
+
+  private hideWelcomeScreen(): void {
+    const welcomeScreen = this.widgetElement?.querySelector<HTMLDivElement>(
+      '.chat-widget-welcome-screen'
+    );
+    if (welcomeScreen) {
+      welcomeScreen.style.display = 'none';
+    }
+  }
+
+  private showMessagesContainer(): void {
+    const messagesContainer = this.widgetElement?.querySelector<HTMLDivElement>(
+      '.chat-widget-messages'
+    );
+    if (messagesContainer) {
+      messagesContainer.style.display = 'block';
+    }
+  }
+
+  private hideMessagesContainer(): void {
+    const messagesContainer = this.widgetElement?.querySelector<HTMLDivElement>(
+      '.chat-widget-messages'
+    );
+    if (messagesContainer) {
+      messagesContainer.style.display = 'none';
     }
   }
 
@@ -802,8 +879,8 @@ export class ChatWidgetCore {
       messagesContainer.innerHTML = '';
     }
 
-    // Add the initial bot message
-    this.addBotMessage('Hi! How can I help you today?');
+    this.hideMessagesContainer();
+    this.showWelcomeScreen();
 
     // Clear any file selections
     this.clearFileSelection();

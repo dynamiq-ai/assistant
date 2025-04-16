@@ -39,4 +39,8 @@ export interface ChatWidgetOptions {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     [key: string]: any;
   };
+  prompts?: {
+    icon: string | React.ReactNode;
+    text: string;
+  }[];
 }
