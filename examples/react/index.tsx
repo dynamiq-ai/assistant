@@ -24,7 +24,7 @@ const App = () => {
       placeholder="Type your message..."
       position="bottom-right"
       api={{
-        url: '',
+        url: 'https://b7329b0d-aa68-4db0-9cac-c871e2273ea1.apps.sandbox.getdynamiq.ai',
         streaming: true,
       }}
       params={{
