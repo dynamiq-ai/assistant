@@ -359,13 +359,7 @@ export class ChatWidgetCore {
       '.chat-widget-container'
     );
     if (chatContainer) {
-      if (chatContainer.requestFullscreen) {
-        chatContainer.requestFullscreen();
-      }
-
-      if (document.fullscreenElement) {
-        document.exitFullscreen();
-      }
+      chatContainer.classList.toggle('chat-widget-container-full-screen');
     }
   }
 

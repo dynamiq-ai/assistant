@@ -56,6 +56,15 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.chat-widget-container-full-screen {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  width: 100vw;
+  height: 100vh;
 }
 
 /* Add these rules for different positions */
@@ -94,7 +103,7 @@
   font-weight: 600;
 }
 
-.chat-widget-container:fullscreen .chat-widget-header h3 {
+.chat-widget-container-full-screen .chat-widget-header h3 {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
@@ -174,7 +183,7 @@
   gap: 8px;
 }
 
-.chat-widget-container:fullscreen .chat-widget-prompts {
+.chat-widget-container-full-screen .chat-widget-prompts {
   flex-direction: row;
   justify-content: center;
 }
@@ -192,7 +201,7 @@
   cursor: pointer;
 }
 
-.chat-widget-container:fullscreen .chat-widget-prompt {
+.chat-widget-container-full-screen .chat-widget-prompt {
   height: 104px;
 }
 
