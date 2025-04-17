@@ -25,6 +25,11 @@
       "types": "./dist/vanilla/types/vanilla/index.d.ts"
     }
   },
+  "targets": {
+    "main": false,
+    "module": false,
+    "types": false
+  },
   "typesVersions": {
     "*": {
       "react": [
