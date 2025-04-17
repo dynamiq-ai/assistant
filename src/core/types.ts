@@ -20,22 +20,33 @@ export interface CustomParams {
 }
 
 export interface ChatWidgetOptions {
-  title?: string;
+  title?: string | React.ReactNode;
   placeholder?: string;
+  welcomeTitle?: string;
+  welcomeSubtitle?: string;
+  footerText?: string; // text or html
+  poweredBy?: string; // text or html
+  humanSupport?: string; // text or html
   position?: 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left';
   theme?: {
     primaryColor?: string;
     secondaryColor?: string;
     fontFamily?: string;
   };
-  api?: ApiConfig;
   allowFileUpload?: boolean;
   maxFileSize?: number; // in bytes
   acceptedFileTypes?: string; // MIME types or extensions
+  toggleButton?: string; // id of the button to toggle the chat widget
+  allowFullScreen?: boolean;
+  api?: ApiConfig;
   params?: {
     userId?: string;
     sessionId?: string;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     [key: string]: any;
   };
+  prompts?: {
+    icon: string | React.ReactNode;
+    text: string;
+  }[];
 }

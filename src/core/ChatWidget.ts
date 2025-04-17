@@ -31,6 +31,8 @@ export class ChatWidgetCore {
     this.options = {
       title: 'Dynamiq Assistant',
       placeholder: 'Type a message...',
+      welcomeTitle: 'Welcome to Dynamiq',
+      welcomeSubtitle: 'How can I help you today?',
       position: 'bottom-right',
       theme: {
         primaryColor: '#6c5ce7',
@@ -116,7 +118,7 @@ export class ChatWidgetCore {
     header.className = 'chat-widget-header';
 
     const title = document.createElement('h3');
-    title.textContent = this.options.title || 'Chat Assistant';
+    title.innerHTML = (this.options.title as string) || 'Chat Assistant';
 
     const headerActions = document.createElement('div');
     headerActions.className = 'chat-widget-header-actions';
@@ -131,16 +133,29 @@ export class ChatWidgetCore {
     closeButton.className = 'chat-widget-close';
     closeButton.innerHTML = '&times;';
 
+    const fullScreenButton = document.createElement('button');
+    fullScreenButton.className = 'chat-widget-full-screen';
+    fullScreenButton.innerHTML =
+      '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"></path></svg>';
+
     headerActions.appendChild(newChatButton);
+    if (this.options.allowFullScreen) {
+      headerActions.appendChild(fullScreenButton);
+    }
     headerActions.appendChild(closeButton);
 
     header.appendChild(title);
     header.appendChild(headerActions);
 
+    // Create content container
+    const contentContainer = document.createElement('div');
+    contentContainer.className = 'chat-widget-content';
+
     // Create the messages container
     const messagesContainer = document.createElement('div');
     messagesContainer.className = 'chat-widget-messages';
-
+    messagesContainer.style.display = 'none';
+    contentContainer.appendChild(messagesContainer);
     // Create the input area
     const inputContainer = document.createElement('div');
     inputContainer.className = 'chat-widget-input';
@@ -183,30 +198,67 @@ export class ChatWidgetCore {
     // Create the human support link
     const humanSupportContainer = document.createElement('div');
     humanSupportContainer.className = 'chat-widget-human-support';
-
-    const humanSupportLink = document.createElement('a');
-    humanSupportLink.href = 'mailto:hello@getdynamiq.ai';
-    humanSupportLink.className = 'chat-widget-human-link';
-    humanSupportLink.innerHTML =
-      'Talk to a human instead <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>';
-
-    humanSupportContainer.appendChild(humanSupportLink);
+    humanSupportContainer.innerHTML = this.options.humanSupport ?? '';
 
     // Create footer
     const footer = document.createElement('div');
     footer.className = 'chat-widget-footer';
-    footer.innerHTML =
-      'Powered by <a href="https://getdynamiq.ai" target="_blank">Dynamiq</a>';
+    footer.innerHTML = this.options.footerText || '';
+
+    // Add powered by section
+    const poweredByContainer = document.createElement('div');
+    poweredByContainer.className = 'chat-widget-powered-by';
+    poweredByContainer.innerHTML = this.options.poweredBy || '';
+
+    // Add welcome screen
+    const welcomeScreen = document.createElement('div');
+    welcomeScreen.className = 'chat-widget-welcome-screen';
+    // add title and subtitle
+    const welcomeTitle = document.createElement('h3');
+    welcomeTitle.className = 'chat-widget-welcome-title';
+    welcomeTitle.textContent = this.options.welcomeTitle!;
+    const welcomeSubtitle = document.createElement('p');
+    welcomeSubtitle.className = 'chat-widget-welcome-subtitle';
+    welcomeSubtitle.textContent = this.options.welcomeSubtitle!;
+    welcomeScreen.appendChild(welcomeTitle);
+    welcomeScreen.appendChild(welcomeSubtitle);
+    contentContainer.appendChild(welcomeScreen);
+
+    // Add prompts
+    if (this.options.prompts) {
+      const promptsContainer = document.createElement('div');
+      promptsContainer.className = 'chat-widget-prompts';
+      this.options.prompts.forEach((prompt) => {
+        const promptElement = document.createElement('button');
+        promptElement.type = 'button';
+        promptElement.className = 'chat-widget-prompt';
+        promptElement.innerHTML = `${prompt.icon} ${prompt.text}`;
+        promptElement.addEventListener('click', () => {
+          this.sendMessage(prompt.text);
+        });
+        promptsContainer.appendChild(promptElement);
+      });
+      welcomeScreen.appendChild(promptsContainer);
+    }
 
     // Assemble the chat container
     chatContainer.appendChild(header);
-    chatContainer.appendChild(messagesContainer);
+    chatContainer.appendChild(contentContainer);
     chatContainer.appendChild(inputContainer);
-    chatContainer.appendChild(humanSupportContainer);
-    chatContainer.appendChild(footer);
+    if (this.options.humanSupport) {
+      chatContainer.appendChild(humanSupportContainer);
+    }
+    if (this.options.footerText) {
+      chatContainer.appendChild(footer);
+    }
+    if (this.options.poweredBy) {
+      chatContainer.appendChild(poweredByContainer);
+    }
 
     // Assemble the widget
-    widget.appendChild(toggleButton);
+    if (!this.options.toggleButton) {
+      widget.appendChild(toggleButton);
+    }
     widget.appendChild(chatContainer);
 
     // Add to the container
@@ -214,26 +266,36 @@ export class ChatWidgetCore {
 
     // Store references
     this.widgetElement = widget;
-
-    // Add initial bot message
-    this.addBotMessage('Hi! How can I help you today?');
   }
 
   private attachEventListeners(): void {
-    if (!this.widgetElement) return;
+    if (!this.widgetElement) {
+      return;
+    }
 
     // Toggle button click
-    const toggleButton = this.widgetElement.querySelector(
-      '.chat-widget-toggle'
-    );
+    const toggleButton = this.options.toggleButton
+      ? document.getElementById(this.options.toggleButton)
+      : this.widgetElement.querySelector('.chat-widget-toggle');
+
     if (toggleButton) {
       toggleButton.addEventListener('click', () => this.toggle());
+    } else {
+      console.warn('Toggle button not found');
     }
 
     // Close button click
     const closeButton = this.widgetElement.querySelector('.chat-widget-close');
     if (closeButton) {
       closeButton.addEventListener('click', () => this.close());
+    }
+
+    // Full screen button click
+    const fullScreenButton = this.widgetElement.querySelector(
+      '.chat-widget-full-screen'
+    );
+    if (fullScreenButton) {
+      fullScreenButton.addEventListener('click', () => this.toggleFullScreen());
     }
 
     // Send button click
@@ -289,6 +351,15 @@ export class ChatWidgetCore {
     );
     if (newChatButton) {
       newChatButton.addEventListener('click', () => this.startNewChat());
+    }
+  }
+
+  private toggleFullScreen(): void {
+    const chatContainer = this.widgetElement?.querySelector<HTMLDivElement>(
+      '.chat-widget-container'
+    );
+    if (chatContainer) {
+      chatContainer.classList.toggle('chat-widget-container-full-screen');
     }
   }
 
@@ -398,7 +469,9 @@ export class ChatWidgetCore {
   }
 
   public close(): void {
-    if (!this.isOpen) return;
+    if (!this.isOpen) {
+      return;
+    }
 
     const chatContainer = this.widgetElement?.querySelector<HTMLDivElement>(
       '.chat-widget-container'
@@ -420,7 +493,9 @@ export class ChatWidgetCore {
   }
 
   public sendMessage(text: string): void {
-    if (!text.trim() && this.selectedFiles.length === 0) return;
+    if (!text.trim() && this.selectedFiles.length === 0) {
+      return;
+    }
 
     const message: ChatMessage = {
       id: Date.now().toString(),
@@ -429,6 +504,9 @@ export class ChatWidgetCore {
       timestamp: new Date(),
       files: [...this.selectedFiles], // Include any selected files
     };
+
+    this.hideWelcomeScreen();
+    this.showMessagesContainer();
 
     this.addMessage(message);
 
@@ -448,6 +526,42 @@ export class ChatWidgetCore {
       this.handleApiCommunication(message).finally(() => {
         this.hideLoadingSpinner();
       });
+    }
+  }
+
+  private showWelcomeScreen(): void {
+    const welcomeScreen = this.widgetElement?.querySelector<HTMLDivElement>(
+      '.chat-widget-welcome-screen'
+    );
+    if (welcomeScreen) {
+      welcomeScreen.style.display = 'flex';
+    }
+  }
+
+  private hideWelcomeScreen(): void {
+    const welcomeScreen = this.widgetElement?.querySelector<HTMLDivElement>(
+      '.chat-widget-welcome-screen'
+    );
+    if (welcomeScreen) {
+      welcomeScreen.style.display = 'none';
+    }
+  }
+
+  private showMessagesContainer(): void {
+    const messagesContainer = this.widgetElement?.querySelector<HTMLDivElement>(
+      '.chat-widget-messages'
+    );
+    if (messagesContainer) {
+      messagesContainer.style.display = 'block';
+    }
+  }
+
+  private hideMessagesContainer(): void {
+    const messagesContainer = this.widgetElement?.querySelector<HTMLDivElement>(
+      '.chat-widget-messages'
+    );
+    if (messagesContainer) {
+      messagesContainer.style.display = 'none';
     }
   }
 
@@ -501,8 +615,7 @@ export class ChatWidgetCore {
       let history: { role: string; content: string }[] = [];
 
       if (this.messages.length) {
-        // remove auto-generated message
-        history = this.messages.slice(1).map((m) => ({
+        history = this.messages.map((m) => ({
           role: m.sender === 'bot' ? 'assistant' : 'user',
           content: m.text,
         }));
@@ -675,9 +788,6 @@ export class ChatWidgetCore {
     if (message.sender === 'bot') {
       avatar.innerHTML =
         '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"></rect><circle cx="12" cy="5" r="2"></circle><path d="M12 7v4"></path><line x1="8" y1="16" x2="8" y2="16"></line><line x1="16" y1="16" x2="16" y2="16"></line></svg>';
-    } else {
-      avatar.innerHTML =
-        '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>';
     }
 
     // Create message content container
@@ -729,7 +839,6 @@ export class ChatWidgetCore {
 
     if (message.sender === 'user') {
       messageElement.appendChild(contentContainer);
-      messageElement.appendChild(avatar);
     } else {
       messageElement.appendChild(avatar);
       messageElement.appendChild(contentContainer);
@@ -782,6 +891,8 @@ export class ChatWidgetCore {
   }
 
   public startNewChat(): void {
+    this.params.sessionId = crypto.randomUUID();
+
     // Clear all messages
     this.messages.length = 0;
 
@@ -793,8 +904,8 @@ export class ChatWidgetCore {
       messagesContainer.innerHTML = '';
     }
 
-    // Add the initial bot message
-    this.addBotMessage('Hi! How can I help you today?');
+    this.hideMessagesContainer();
+    this.showWelcomeScreen();
 
     // Clear any file selections
     this.clearFileSelection();
