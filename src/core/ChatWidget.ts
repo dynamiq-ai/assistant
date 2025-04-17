@@ -794,9 +794,6 @@ export class ChatWidgetCore {
     if (message.sender === 'bot') {
       avatar.innerHTML =
         '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"></rect><circle cx="12" cy="5" r="2"></circle><path d="M12 7v4"></path><line x1="8" y1="16" x2="8" y2="16"></line><line x1="16" y1="16" x2="16" y2="16"></line></svg>';
-    } else {
-      avatar.innerHTML =
-        '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>';
     }
 
     // Create message content container
@@ -848,7 +845,6 @@ export class ChatWidgetCore {
 
     if (message.sender === 'user') {
       messageElement.appendChild(contentContainer);
-      messageElement.appendChild(avatar);
     } else {
       messageElement.appendChild(avatar);
       messageElement.appendChild(contentContainer);
