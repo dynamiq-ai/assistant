@@ -66,6 +66,8 @@
   "author": "Pavlo Kurochka",
   "license": "Apache-2.0",
   "devDependencies": {
+    "@commitlint/cli": "^19.8.0",
+    "@commitlint/config-conventional": "^19.8.0",
     "@eslint/js": "^9.23.0",
     "@rollup/plugin-commonjs": "^22.0.0",
     "@rollup/plugin-node-resolve": "^13.3.0",
@@ -78,6 +80,7 @@
     "eslint": "^9.23.0",
     "eslint-plugin-react": "^7.37.4",
     "globals": "^16.0.0",
+    "husky": "^9.1.7",
     "jest": "^28.1.0",
     "jest-environment-jsdom": "^28.1.0",
     "parcel": "^2.6.0",
@@ -89,6 +92,7 @@
     "rollup-plugin-peer-deps-external": "^2.2.4",
     "rollup-plugin-postcss": "^4.0.2",
     "rollup-plugin-terser": "^7.0.2",
+    "semantic-release": "^24.2.3",
     "ts-jest": "^28.0.2",
     "typescript": "^4.6.4",
     "typescript-eslint": "^8.28.0"
