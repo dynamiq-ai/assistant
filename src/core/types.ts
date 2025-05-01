@@ -50,3 +50,9 @@ export interface ChatWidgetOptions {
     text: string;
   }[];
 }
+
+export interface HistoryChat {
+  sessionId: string;
+  userId: string;
+  messages: ChatMessage[];
+}

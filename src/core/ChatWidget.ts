@@ -7,6 +7,7 @@ import {
 import './styles.css';
 import { getRelativeTimeString } from './utils';
 import { marked } from 'marked';
+import HistoryPanel from './HistoryPanel';
 
 // Configure marked for safe rendering
 marked.setOptions({
@@ -25,9 +26,11 @@ export class ChatWidgetCore {
   private isLoading: boolean = false;
   private relativeTimeInterval: NodeJS.Timeout | null = null;
   private params: CustomParams;
+  private historyPanel: HistoryPanel;
 
   constructor(container: HTMLElement, options: ChatWidgetOptions = {}) {
     this.container = container;
+    this.historyPanel = new HistoryPanel();
     this.options = {
       title: 'Dynamiq Assistant',
       placeholder: 'Type a message...',
@@ -241,18 +244,32 @@ export class ChatWidgetCore {
       welcomeScreen.appendChild(promptsContainer);
     }
 
+    // Chat panel holds everything except the header
+    const chatPanel = document.createElement('div');
+    chatPanel.className = 'chat-widget-panel';
+
+    // Create the history container
+    chatPanel.appendChild(this.historyPanel.render());
+
+    const chatMain = document.createElement('div');
+    chatMain.className = 'chat-widget-main';
+    chatMain.appendChild(contentContainer);
+    chatMain.appendChild(inputContainer);
+
+    chatPanel.appendChild(chatMain);
+
     // Assemble the chat container
     chatContainer.appendChild(header);
-    chatContainer.appendChild(contentContainer);
-    chatContainer.appendChild(inputContainer);
+    chatContainer.appendChild(chatPanel);
+
     if (this.options.humanSupport) {
-      chatContainer.appendChild(humanSupportContainer);
+      chatMain.appendChild(humanSupportContainer);
     }
     if (this.options.footerText) {
-      chatContainer.appendChild(footer);
+      chatMain.appendChild(footer);
     }
     if (this.options.poweredBy) {
-      chatContainer.appendChild(poweredByContainer);
+      chatMain.appendChild(poweredByContainer);
     }
 
     // Assemble the widget
