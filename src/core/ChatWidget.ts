@@ -735,7 +735,7 @@ export class ChatWidgetCore {
           );
           if (chat) {
             chat.messages = chat.messages.map((m) => {
-              if (m.timestamp === lastMessage.timestamp) {
+              if (m.id === lastMessage.id) {
                 return { ...m, text: message };
               }
               return m;
@@ -915,9 +915,11 @@ export class ChatWidgetCore {
       const filesContainer = document.createElement('div');
       filesContainer.className = 'chat-message-files';
 
-      message.files.forEach((file) => {
-        filesContainer.appendChild(this.renderFileAttachment(file));
-      });
+      message.files
+        .filter((f) => f instanceof File)
+        .forEach((file) => {
+          filesContainer.appendChild(this.renderFileAttachment(file));
+        });
 
       contentContainer.appendChild(filesContainer);
     }
