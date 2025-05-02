@@ -3,10 +3,13 @@ import {
   ChatWidgetOptions,
   ApiConfig,
   CustomParams,
+  HistoryChat,
 } from './types';
 import './styles.css';
 import { getRelativeTimeString } from './utils';
 import { marked } from 'marked';
+import HistoryPanel from './HistoryPanel';
+import { Storage } from './Storage';
 
 // Configure marked for safe rendering
 marked.setOptions({
@@ -16,8 +19,9 @@ marked.setOptions({
 
 export class ChatWidgetCore {
   private readonly container: HTMLElement;
-  private readonly messages: ChatMessage[] = [];
+  private readonly historyPanel: HistoryPanel;
   private readonly options: ChatWidgetOptions;
+  private messages: ChatMessage[] = [];
   private isOpen: boolean = false;
   private widgetElement: HTMLElement | null = null;
   private readonly apiConfig: ApiConfig | undefined;
@@ -25,9 +29,12 @@ export class ChatWidgetCore {
   private isLoading: boolean = false;
   private relativeTimeInterval: NodeJS.Timeout | null = null;
   private params: CustomParams;
+  private storage: Storage;
 
   constructor(container: HTMLElement, options: ChatWidgetOptions = {}) {
     this.container = container;
+    this.storage = Storage.getInstance();
+    this.historyPanel = new HistoryPanel(this.loadChatHistory.bind(this));
     this.options = {
       title: 'Dynamiq Assistant',
       placeholder: 'Type a message...',
@@ -241,18 +248,32 @@ export class ChatWidgetCore {
       welcomeScreen.appendChild(promptsContainer);
     }
 
+    // Chat panel holds everything except the header
+    const chatPanel = document.createElement('div');
+    chatPanel.className = 'chat-widget-panel';
+
+    // Create the history container
+    chatPanel.appendChild(this.historyPanel.render());
+
+    const chatMain = document.createElement('div');
+    chatMain.className = 'chat-widget-main';
+    chatMain.appendChild(contentContainer);
+    chatMain.appendChild(inputContainer);
+
+    chatPanel.appendChild(chatMain);
+
     // Assemble the chat container
     chatContainer.appendChild(header);
-    chatContainer.appendChild(contentContainer);
-    chatContainer.appendChild(inputContainer);
+    chatContainer.appendChild(chatPanel);
+
     if (this.options.humanSupport) {
-      chatContainer.appendChild(humanSupportContainer);
+      chatMain.appendChild(humanSupportContainer);
     }
     if (this.options.footerText) {
-      chatContainer.appendChild(footer);
+      chatMain.appendChild(footer);
     }
     if (this.options.poweredBy) {
-      chatContainer.appendChild(poweredByContainer);
+      chatMain.appendChild(poweredByContainer);
     }
 
     // Assemble the widget
@@ -501,7 +522,7 @@ export class ChatWidgetCore {
       id: Date.now().toString(),
       text: text.trim(),
       sender: 'user',
-      timestamp: new Date(),
+      timestamp: Date.now(),
       files: [...this.selectedFiles], // Include any selected files
     };
 
@@ -566,14 +587,18 @@ export class ChatWidgetCore {
   }
 
   private showLoadingSpinner(): void {
-    if (this.isLoading) return;
+    if (this.isLoading) {
+      return;
+    }
 
     this.isLoading = true;
 
     const messagesContainer = this.widgetElement?.querySelector(
       '.chat-widget-messages'
     );
-    if (!messagesContainer) return;
+    if (!messagesContainer) {
+      return;
+    }
 
     const spinnerElement = document.createElement('div');
     spinnerElement.className = 'chat-loading-spinner';
@@ -703,6 +728,20 @@ export class ChatWidgetCore {
         const lastMessage = this.messages.at(-1);
         if (lastMessage) {
           lastMessage.text = message;
+          // update the message in the history
+          const chats = this.storage.getChats();
+          const chat = chats.find(
+            (h: HistoryChat) => h.sessionId === this.params.sessionId
+          );
+          if (chat) {
+            chat.messages = chat.messages.map((m) => {
+              if (m.id === lastMessage.id) {
+                return { ...m, text: message };
+              }
+              return m;
+            });
+            this.storage.updateChat(chat);
+          }
         }
       } else {
         if (!response.ok) {
@@ -737,7 +776,7 @@ export class ChatWidgetCore {
       id: messageId,
       text,
       sender: 'bot',
-      timestamp: new Date(),
+      timestamp: Date.now(),
     };
 
     this.addMessage(botMessage);
@@ -765,6 +804,31 @@ export class ChatWidgetCore {
   }
 
   public addMessage(message: ChatMessage): void {
+    // first message, so create a new chat in history
+    if (this.messages.length === 0) {
+      const newChat: HistoryChat = {
+        title: message.text,
+        updatedAt: Date.now(),
+        userId: this.params.userId,
+        sessionId: this.params.sessionId,
+        messages: [message],
+      };
+
+      this.historyPanel.addChat(newChat);
+    } else {
+      // update the chat in history
+      const chats = this.storage.getChats();
+      const chat = chats.find(
+        (h: HistoryChat) => h.sessionId === this.params.sessionId
+      );
+      console.assert(chat, 'Chat not found in history');
+      if (chat) {
+        chat.messages.push(message);
+        chat.updatedAt = Date.now();
+        this.storage.updateChat(chat);
+      }
+    }
+
     this.messages.push(message);
     this.renderMessage(message);
   }
@@ -851,9 +915,11 @@ export class ChatWidgetCore {
       const filesContainer = document.createElement('div');
       filesContainer.className = 'chat-message-files';
 
-      message.files.forEach((file) => {
-        filesContainer.appendChild(this.renderFileAttachment(file));
-      });
+      message.files
+        .filter((f) => f instanceof File)
+        .forEach((file) => {
+          filesContainer.appendChild(this.renderFileAttachment(file));
+        });
 
       contentContainer.appendChild(filesContainer);
     }
@@ -990,5 +1056,33 @@ export class ChatWidgetCore {
 
   public updateParams(params: ChatWidgetOptions['params']) {
     this.params = { ...this.params, ...params };
+  }
+
+  private async loadChatHistory(sessionId: string) {
+    const chats = this.storage.getChats();
+    const chat = chats.find((h: HistoryChat) => h.sessionId === sessionId);
+    if (chat) {
+      this.historyPanel.setActiveChat(chat);
+      this.hideWelcomeScreen();
+      this.showMessagesContainer();
+      this.messages = chat.messages as ChatMessage[];
+      // Clear the messages container
+      const messagesContainer = this.widgetElement?.querySelector(
+        '.chat-widget-messages'
+      );
+      if (messagesContainer) {
+        messagesContainer.innerHTML = '';
+      }
+      // how to keep order of messages
+      for (const message of this.messages) {
+        // skip empty messages since they are meaningless
+        if (message.text) {
+          await this.renderMessage(message);
+        }
+      }
+
+      this.params.sessionId = sessionId;
+      this.params.userId = chat.userId;
+    }
   }
 }
