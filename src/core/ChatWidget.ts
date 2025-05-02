@@ -1062,6 +1062,7 @@ export class ChatWidgetCore {
       (h: HistoryChat) => h.sessionId === sessionId
     );
     if (chat) {
+      this.historyPanel.setActiveChat(chat);
       this.hideWelcomeScreen();
       this.showMessagesContainer();
       this.messages = chat.messages as ChatMessage[];

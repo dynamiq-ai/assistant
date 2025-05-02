@@ -5,6 +5,8 @@ class HistoryPanel {
   private readonly onChatItemClick: (sessionId: string) => void;
   private chatsContainer: HTMLDivElement;
 
+  private activeChat: HistoryChat | null = null;
+
   constructor(onChatItemClick: (sessionId: string) => void) {
     this.chats = localStorage.getItem('chats_history')
       ? JSON.parse(localStorage.getItem('chats_history') || '')
@@ -43,11 +45,28 @@ class HistoryPanel {
   addChat(chat: HistoryChat) {
     this.chats.push(chat);
     this.chatsContainer.prepend(this.renderChat(chat));
+    this.setActiveChat(chat);
+  }
+
+  setActiveChat(chat: HistoryChat) {
+    this.activeChat = chat;
+    this.chatsContainer
+      .querySelectorAll('.chat-widget-history-chat')
+      .forEach((item) => {
+        item.classList.remove('active');
+      });
+    const chatItem = this.chatsContainer.querySelector(
+      `.chat-widget-history-chat[data-session-id="${chat.sessionId}"]`
+    );
+    if (chatItem) {
+      chatItem.classList.add('active');
+    }
   }
 
   private renderChat(chat: HistoryChat) {
     const chatItem = document.createElement('div');
     chatItem.className = 'chat-widget-history-chat';
+    chatItem.setAttribute('data-session-id', chat.sessionId);
 
     // Title
     const title = document.createElement('div');
