@@ -9,6 +9,7 @@ import './styles.css';
 import { getRelativeTimeString } from './utils';
 import { marked } from 'marked';
 import HistoryPanel from './HistoryPanel';
+import { Storage } from './Storage';
 
 // Configure marked for safe rendering
 marked.setOptions({
@@ -28,9 +29,11 @@ export class ChatWidgetCore {
   private isLoading: boolean = false;
   private relativeTimeInterval: NodeJS.Timeout | null = null;
   private params: CustomParams;
+  private storage: Storage;
 
   constructor(container: HTMLElement, options: ChatWidgetOptions = {}) {
     this.container = container;
+    this.storage = Storage.getInstance();
     this.historyPanel = new HistoryPanel(this.loadChatHistory.bind(this));
     this.options = {
       title: 'Dynamiq Assistant',
@@ -722,9 +725,8 @@ export class ChatWidgetCore {
         if (lastMessage) {
           lastMessage.text = message;
           // update the message in the history
-          const history = localStorage.getItem('chats_history');
-          const historyArray = history ? JSON.parse(history) : [];
-          const chat = historyArray.find(
+          const chats = this.storage.getChats();
+          const chat = chats.find(
             (h: HistoryChat) => h.sessionId === this.params.sessionId
           );
           if (chat) {
@@ -734,7 +736,7 @@ export class ChatWidgetCore {
               }
               return m;
             });
-            localStorage.setItem('chats_history', JSON.stringify(historyArray));
+            this.storage.updateChat(chat);
           }
         }
       } else {
@@ -800,32 +802,27 @@ export class ChatWidgetCore {
   public addMessage(message: ChatMessage): void {
     // first message, so create a new chat in history
     if (this.messages.length === 0) {
-      const history = localStorage.getItem('chats_history');
-      const historyArray = history ? JSON.parse(history) : [];
-      historyArray.push({
+      const newChat: HistoryChat = {
         title: message.text,
         updatedAt: Date.now(),
         userId: this.params.userId,
         sessionId: this.params.sessionId,
         messages: [message],
-      });
+      };
 
-      localStorage.setItem('chats_history', JSON.stringify(historyArray));
-      this.historyPanel.addChat(historyArray.at(-1));
+      this.historyPanel.addChat(newChat);
     } else {
       // update the chat in history
-      const history = localStorage.getItem('chats_history');
-      const historyArray = history ? JSON.parse(history) : [];
-      const chat = historyArray.find(
+      const chats = this.storage.getChats();
+      const chat = chats.find(
         (h: HistoryChat) => h.sessionId === this.params.sessionId
       );
       console.assert(chat, 'Chat not found in history');
       if (chat) {
         chat.messages.push(message);
         chat.updatedAt = Date.now();
+        this.storage.updateChat(chat);
       }
-
-      localStorage.setItem('chats_history', JSON.stringify(historyArray));
     }
 
     this.messages.push(message);
@@ -1056,11 +1053,8 @@ export class ChatWidgetCore {
   }
 
   private async loadChatHistory(sessionId: string) {
-    const history = localStorage.getItem('chats_history');
-    const historyArray = history ? JSON.parse(history) : [];
-    const chat = historyArray.find(
-      (h: HistoryChat) => h.sessionId === sessionId
-    );
+    const chats = this.storage.getChats();
+    const chat = chats.find((h: HistoryChat) => h.sessionId === sessionId);
     if (chat) {
       this.historyPanel.setActiveChat(chat);
       this.hideWelcomeScreen();

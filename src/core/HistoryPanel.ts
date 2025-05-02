@@ -1,16 +1,16 @@
 import { HistoryChat } from './types';
+import { Storage } from './Storage';
 
 class HistoryPanel {
   private chats: HistoryChat[] = [];
   private readonly onChatItemClick: (sessionId: string) => void;
   private chatsContainer: HTMLDivElement;
-
+  private storage: Storage;
   private activeChat: HistoryChat | null = null;
 
   constructor(onChatItemClick: (sessionId: string) => void) {
-    this.chats = localStorage.getItem('chats_history')
-      ? JSON.parse(localStorage.getItem('chats_history') || '')
-      : [];
+    this.storage = Storage.getInstance();
+    this.chats = this.storage.getChats();
     this.onChatItemClick = onChatItemClick;
   }
 
@@ -43,9 +43,20 @@ class HistoryPanel {
   }
 
   addChat(chat: HistoryChat) {
+    this.hideEmpty();
     this.chats.push(chat);
+    this.storage.addChat(chat);
     this.chatsContainer.prepend(this.renderChat(chat));
     this.setActiveChat(chat);
+  }
+
+  hideEmpty() {
+    const historyEmpty = this.chatsContainer.querySelector(
+      '.chat-widget-history-empty'
+    );
+    if (historyEmpty) {
+      historyEmpty.remove();
+    }
   }
 
   setActiveChat(chat: HistoryChat) {
