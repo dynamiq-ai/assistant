@@ -2,7 +2,7 @@ export interface ChatMessage {
   id: string;
   text: string;
   sender: 'user' | 'bot';
-  timestamp: Date;
+  timestamp: number;
   files?: File[];
 }
 
@@ -55,4 +55,6 @@ export interface HistoryChat {
   sessionId: string;
   userId: string;
   messages: ChatMessage[];
+  title: string;
+  updatedAt: number;
 }

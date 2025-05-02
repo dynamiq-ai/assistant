@@ -2,11 +2,14 @@ import { HistoryChat } from './types';
 
 class HistoryPanel {
   private chats: HistoryChat[] = [];
+  private readonly onChatItemClick: (sessionId: string) => void;
+  private chatsContainer: HTMLDivElement;
 
-  constructor() {
+  constructor(onChatItemClick: (sessionId: string) => void) {
     this.chats = localStorage.getItem('chats_history')
       ? JSON.parse(localStorage.getItem('chats_history') || '')
       : [];
+    this.onChatItemClick = onChatItemClick;
   }
 
   render() {
@@ -22,12 +25,51 @@ class HistoryPanel {
     chatsContainer.className = 'chat-widget-history-chats-container';
     historyPanel.appendChild(chatsContainer);
 
+    this.chats
+      .sort((a, b) => b.updatedAt - a.updatedAt)
+      .forEach((chat) => chatsContainer.appendChild(this.renderChat(chat)));
+
     const historyEmpty = document.createElement('div');
     historyEmpty.className = 'chat-widget-history-empty';
     historyEmpty.innerHTML = 'No chats yet';
-    chatsContainer.appendChild(historyEmpty);
+    if (this.chats.length === 0) {
+      chatsContainer.appendChild(historyEmpty);
+    }
+    this.chatsContainer = chatsContainer;
 
     return historyPanel;
+  }
+
+  addChat(chat: HistoryChat) {
+    this.chats.push(chat);
+    this.chatsContainer.prepend(this.renderChat(chat));
+  }
+
+  private renderChat(chat: HistoryChat) {
+    const chatItem = document.createElement('div');
+    chatItem.className = 'chat-widget-history-chat';
+
+    // Title
+    const title = document.createElement('div');
+    title.className = 'chat-widget-history-chat-title';
+    title.textContent = chat.title;
+    chatItem.appendChild(title);
+
+    // Timestamp
+    const timestamp = document.createElement('div');
+    timestamp.className = 'chat-widget-history-chat-timestamp';
+    const date = new Date(chat.updatedAt);
+    timestamp.textContent = date.toLocaleDateString(undefined, {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
+    chatItem.appendChild(timestamp);
+
+    chatItem.addEventListener('click', () =>
+      this.onChatItemClick(chat.sessionId)
+    );
+    return chatItem;
   }
 }
 
