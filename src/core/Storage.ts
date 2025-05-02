@@ -78,7 +78,6 @@ export class Storage {
     const newChats = [chat, ...chats];
     const newData = JSON.stringify(newChats);
     const newDataSize = this.getItemSize(STORAGE_KEY, newData);
-    console.log(newDataSize, MAX_STORAGE_SIZE);
 
     if (newDataSize > MAX_STORAGE_SIZE) {
       this.cleanupOldData(newDataSize);

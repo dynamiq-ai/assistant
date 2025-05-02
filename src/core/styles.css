@@ -842,6 +842,7 @@
   transition: background 0.15s;
   font-family: var(--font-family);
   box-shadow: none;
+  color: var(--text-color);
 }
 
 .chat-widget-history-chat:hover,
@@ -853,7 +854,6 @@
 .chat-widget-history-chat-title {
   font-size: 16px;
   font-weight: 500;
-  color: var(--text-color);
   margin-bottom: 2px;
   white-space: nowrap;
   overflow: hidden;

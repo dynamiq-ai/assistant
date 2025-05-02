@@ -587,14 +587,18 @@ export class ChatWidgetCore {
   }
 
   private showLoadingSpinner(): void {
-    if (this.isLoading) return;
+    if (this.isLoading) {
+      return;
+    }
 
     this.isLoading = true;
 
     const messagesContainer = this.widgetElement?.querySelector(
       '.chat-widget-messages'
     );
-    if (!messagesContainer) return;
+    if (!messagesContainer) {
+      return;
+    }
 
     const spinnerElement = document.createElement('div');
     spinnerElement.className = 'chat-loading-spinner';
