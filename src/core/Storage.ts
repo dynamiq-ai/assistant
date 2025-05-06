@@ -4,8 +4,9 @@ const STORAGE_KEY = 'chats_history';
 const MAX_STORAGE_SIZE = 4.5 * 1024 * 1024; // 4.5MB (leaving some buffer for other data)
 
 export class Storage {
+  public static userId: string;
   private static instance: Storage;
-  private storage: globalThis.Storage;
+  private readonly storage: globalThis.Storage;
 
   private constructor() {
     this.storage = window.localStorage;
@@ -63,10 +64,13 @@ export class Storage {
 
   public getChats(): HistoryChat[] {
     const data = this.storage.getItem(STORAGE_KEY);
-    if (!data) return [];
+    if (!data) {
+      return [];
+    }
 
     try {
-      return JSON.parse(data);
+      const parsedData = JSON.parse(data);
+      return parsedData.filter((chat: HistoryChat) => chat.userId === Storage.userId);
     } catch (e) {
       console.error('Failed to parse chats from storage:', e);
       return [];
