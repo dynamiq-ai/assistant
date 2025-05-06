@@ -34,7 +34,6 @@ export class ChatWidgetCore {
   constructor(container: HTMLElement, options: ChatWidgetOptions = {}) {
     this.container = container;
     this.storage = Storage.getInstance();
-    this.historyPanel = new HistoryPanel(this.loadChatHistory.bind(this));
     this.options = {
       title: 'Dynamiq Assistant',
       placeholder: 'Type a message...',
@@ -57,9 +56,10 @@ export class ChatWidgetCore {
       sessionId: crypto.randomUUID(),
       ...options.params,
     };
+    Storage.userId = this.params.userId;
     this.apiConfig = this.options.api;
     this.selectedFiles = [];
-
+    this.historyPanel = new HistoryPanel(this.loadChatHistory.bind(this));
     this.init();
   }
 
@@ -1056,6 +1056,7 @@ export class ChatWidgetCore {
 
   public updateParams(params: ChatWidgetOptions['params']) {
     this.params = { ...this.params, ...params };
+    Storage.userId = this.params.userId;
   }
 
   private async loadChatHistory(sessionId: string) {

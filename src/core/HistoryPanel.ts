@@ -2,10 +2,10 @@ import { HistoryChat } from './types';
 import { Storage } from './Storage';
 
 class HistoryPanel {
-  private chats: HistoryChat[] = [];
+  private readonly chats: HistoryChat[] = [];
   private readonly onChatItemClick: (sessionId: string) => void;
   private chatsContainer: HTMLDivElement;
-  private storage: Storage;
+  private readonly storage: Storage;
   private activeChat: HistoryChat | null = null;
 
   constructor(onChatItemClick: (sessionId: string) => void) {
