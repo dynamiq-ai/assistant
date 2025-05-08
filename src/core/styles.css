@@ -759,19 +759,21 @@
   margin-bottom: 0.75em;
 }
 
-.chat-message-markdown table th,
+.chat-message-markdown table th {
+  text-align: left;
+  color: rgba(126, 126, 126, 0.6);
+  font-weight: 400;
+  padding: 13px;
+}
+
 .chat-message-markdown table td {
-  padding: 6px 13px;
-  border: 1px solid #dfe2e5;
+  font-weight: 500;
+  padding: 17px 13px;
 }
 
 .chat-message-markdown table tr {
   background-color: #fff;
-  border-top: 1px solid #c6cbd1;
-}
-
-.chat-message-markdown table tr:nth-child(2n) {
-  background-color: #f6f8fa;
+  border-top: 1px solid #eeeff1;
 }
 
 .chat-widget-panel {
