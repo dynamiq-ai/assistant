@@ -873,3 +873,22 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+.chat-message-chart {
+  width: 100%;
+  height: 100%;
+}
+
+.chat-message-chart-container {
+  height: 300px;
+  width: 100%;
+  min-width: 250px;
+}
+
+#vg-tooltip-element {
+  z-index: 99999;
+}
+
+.chat-message--full-width > .chat-message-content {
+  width: 100%;
+}

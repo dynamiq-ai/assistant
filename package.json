@@ -105,7 +105,10 @@
   "peerDependencies": {
     "marked": ">=15.0.0",
     "react": ">=16.8.0",
-    "react-dom": ">=16.8.0"
+    "react-dom": ">=16.8.0",
+    "vega": "5.33.0",
+    "vega-embed": "6.29.0",
+    "vega-lite": "5.23.0"
   },
   "config": {
     "commitizen": {
