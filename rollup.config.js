@@ -70,6 +70,7 @@ export default [
         sourcemap: true,
         globals: {
           marked: 'marked',
+          vegaEmbed: 'vegaEmbed',
         },
       },
     ],

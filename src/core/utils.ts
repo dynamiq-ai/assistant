@@ -57,26 +57,17 @@ export function getRelativeTimeString(
  * @param primaryColor - The primary color
  * @returns The updated code
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const updateChartCode = (initialCode: any, primaryColor: string) => {
   const updatedMark = {
-    ...(typeof CHART_ADDITIONAL_DATA.mark === 'object'
-      ? CHART_ADDITIONAL_DATA.mark
-      : {}),
-    color: primaryColor,
+    ...CHART_ADDITIONAL_DATA.mark,
     ...(typeof initialCode.mark === 'object'
       ? initialCode.mark
       : typeof initialCode.mark === 'string'
       ? { type: initialCode.mark }
       : {}),
+    color: primaryColor,
   };
-
-  if (
-    typeof initialCode.mark === 'object' &&
-    initialCode.mark !== null &&
-    initialCode.mark.hasOwnProperty('color')
-  ) {
-    updatedMark.color = initialCode.mark.color;
-  }
 
   return {
     ...CHART_ADDITIONAL_DATA,

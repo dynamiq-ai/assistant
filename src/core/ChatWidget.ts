@@ -90,7 +90,7 @@ export class ChatWidgetCore {
           return `<div class="chat-message-chart-container">
           <div id="${chartId}" class="chat-message-chart" data-chart-spec="${escapedSpec}"></div>
           </div>`;
-        } catch (e) {
+        } catch {
           console.log('chart not yet ready');
           return 'Building chart...';
         }
@@ -1002,7 +1002,7 @@ export class ChatWidgetCore {
           // vegaEmbed can take a string spec.
           const chartSpec = JSON.parse(specString);
           await vegaEmbed(`#${chartId}`, chartSpec, { actions: false });
-        } catch (e) {
+        } catch {
           console.log('chart not yet ready');
           chartDiv.innerHTML = 'Error rendering chart data.';
         }

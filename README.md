@@ -9,7 +9,7 @@
 ## Install
 
 ```bash
-npm install @dynamiq/assistant marked@15
+npm install @dynamiq/assistant marked@15 vega@5.33.0 vega-lite@5.23.0 vega-embed@6.29.0
 ```
 
 ## Usage
@@ -83,6 +83,9 @@ const assistant = new DynamiqAssistant('#dynamiq-assistant-container', {
 #### Script Tag
 
 ```html
+<script src="https://cdn.jsdelivr.net/npm/vega@5.33.0"></script>
+<script src="https://cdn.jsdelivr.net/npm/vega-lite@5.23.0"></script>
+<script src="https://cdn.jsdelivr.net/npm/vega-embed@6.29.0"></script>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@dynamiq/assistant@latest/dist/index.browser.js"></script>
 <script>
@@ -133,5 +136,5 @@ These are all the props you can pass to the `<DynamiqAssistant />` component.
 | `theme.fontFamily`     | `string`              | The font family of the assistant.                                                                |
 | `allowFullScreen`      | `boolean`             | Whether to show the full screen button.                                                          |
 | `footerText`           | `string`              | The text to show in the footer.                                                                  |
-| `poweredBy`            | `string`              | The text to show in the powered by section.                                                       |
-| `humanSupport`         | `string`              | The text to show in the human support section.                                                     |
+| `poweredBy`            | `string`              | The text to show in the powered by section.                                                      |
+| `humanSupport`         | `string`              | The text to show in the human support section.                                                   |
