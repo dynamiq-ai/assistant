@@ -6,10 +6,11 @@ import {
   HistoryChat,
 } from './types';
 import './styles.css';
-import { getRelativeTimeString } from './utils';
+import { getRelativeTimeString, updateChartCode } from './utils';
 import { marked } from 'marked';
 import HistoryPanel from './HistoryPanel';
 import { Storage } from './Storage';
+import vegaEmbed from 'vega-embed';
 
 // Configure marked for safe rendering
 marked.setOptions({
@@ -60,7 +61,44 @@ export class ChatWidgetCore {
     this.apiConfig = this.options.api;
     this.selectedFiles = [];
     this.historyPanel = new HistoryPanel(this.loadChatHistory.bind(this));
+
+    this.setupMarkedRenderer();
     this.init();
+  }
+
+  private setupMarkedRenderer(): void {
+    const renderer = new marked.Renderer();
+    const originalCodeRenderer = renderer.code.bind(renderer);
+
+    // Render Vega charts in the chat widget in ```chart code block
+    renderer.code = ({ text: code, lang: language, escaped }) => {
+      if (language === 'chart') {
+        try {
+          const initialCode = JSON.parse(code);
+          const primaryThemeColor =
+            this.options.theme?.primaryColor || '#6c5ce7';
+
+          const updatedCode = updateChartCode(initialCode, primaryThemeColor);
+
+          const chartId = `vega-chart-${Math.random()
+            .toString(36)
+            .substring(7)}`;
+          const escapedSpec = JSON.stringify(updatedCode)
+            .replace(/"/g, '&quot;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+          return `<div class="chat-message-chart-container">
+          <div id="${chartId}" class="chat-message-chart" data-chart-spec="${escapedSpec}"></div>
+          </div>`;
+        } catch (e) {
+          console.log('chart not yet ready');
+          return 'Building chart...';
+        }
+      }
+      return originalCodeRenderer({ text: code, lang: language, escaped });
+    };
+
+    marked.use({ renderer });
   }
 
   private init(): void {
@@ -382,6 +420,10 @@ export class ChatWidgetCore {
     if (chatContainer) {
       chatContainer.classList.toggle('chat-widget-container-full-screen');
     }
+    // Force a resize event to ensure the chart is resized
+    setTimeout(() => {
+      window.dispatchEvent(new Event('resize'));
+    }, 500);
   }
 
   private handleFileSelection(files: FileList): void {
@@ -795,8 +837,18 @@ export class ChatWidgetCore {
     if (textElement) {
       // Parse markdown for bot messages if markdown is enabled
       if (message?.classList.contains('chat-message-bot')) {
-        textElement.innerHTML = await marked(text);
+        const rawHtml = await marked(text);
+        textElement.innerHTML = rawHtml;
         textElement.className = 'chat-message-text chat-message-markdown';
+
+        if (textElement.querySelector('.chat-message-chart-container')) {
+          message.classList.add('chat-message--full-width');
+        } else {
+          message.classList.remove('chat-message--full-width');
+        }
+
+        // After setting innerHTML, find and render charts
+        this.renderVegaChartsInElement(textElement as HTMLElement);
       } else {
         textElement.textContent = text;
       }
@@ -880,8 +932,12 @@ export class ChatWidgetCore {
     } else {
       // Parse markdown if the message is from the bot and markdown is enabled
       if (message.sender === 'bot') {
-        textElement.innerHTML = await marked(message.text);
+        const rawHtml = await marked(message.text);
+        textElement.innerHTML = rawHtml;
         textElement.className += ' chat-message-markdown';
+        // After setting innerHTML, find and render charts
+        // This needs to be done *after* the message element is in the DOM.
+        this.renderVegaChartsInElement(textElement as HTMLElement);
       } else {
         textElement.textContent = message.text;
       }
@@ -926,6 +982,35 @@ export class ChatWidgetCore {
 
     // Scroll to bottom
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
+  }
+
+  private async renderVegaChartsInElement(
+    parentElement: HTMLElement
+  ): Promise<void> {
+    const chartDivs = parentElement.querySelectorAll<HTMLDivElement>(
+      '.chat-message-chart'
+    );
+
+    chartDivs.forEach(async (chartDiv) => {
+      const chartId = chartDiv.id;
+      const specString = chartDiv.getAttribute('data-chart-spec');
+      if (specString) {
+        try {
+          // The specString is already validated as JSON by the renderer
+          // and properly escaped for the data attribute.
+          // We need to unescape it if vegaEmbed expects a raw string, or parse if it expects an object.
+          // vegaEmbed can take a string spec.
+          const chartSpec = JSON.parse(specString);
+          await vegaEmbed(`#${chartId}`, chartSpec, { actions: false });
+        } catch (e) {
+          console.log('chart not yet ready');
+          chartDiv.innerHTML = 'Error rendering chart data.';
+        }
+      } else {
+        console.warn(`Chart div ${chartId} missing data-chart-spec.`);
+        chartDiv.innerHTML = 'Error: Chart data not found.';
+      }
+    });
   }
 
   private clearFileSelection(): void {
