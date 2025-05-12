@@ -28,8 +28,8 @@ const App = () => {
         streaming: true,
       }}
       params={{
-        userId: '123',
-        sessionId: '234',
+        userId: '1234',
+        // sessionId: '234',
         userName: 'John Doe',
         language: 'en',
       }}
