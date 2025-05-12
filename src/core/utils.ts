@@ -75,3 +75,19 @@ export const updateChartCode = (initialCode: any, primaryColor: string) => {
     mark: updatedMark,
   };
 };
+
+/**
+ * Resize an input element to fit its content
+ * @param input - The input element to resize
+ * @param vPadding - The vertical padding of the input
+ * @param maxHeight - The maximum height of the input
+ */
+export function resizeInput(
+  input: HTMLTextAreaElement,
+  vPadding: number,
+  maxHeight: number
+) {
+  input.style.height = 'auto';
+  const newHeight = input.scrollHeight - vPadding;
+  input.style.height = `${Math.min(newHeight, maxHeight)}px`;
+}

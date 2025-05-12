@@ -6,11 +6,12 @@ import {
   HistoryChat,
 } from './types';
 import './styles.css';
-import { getRelativeTimeString, updateChartCode } from './utils';
+import { getRelativeTimeString, resizeInput, updateChartCode } from './utils';
 import { marked } from 'marked';
 import HistoryPanel from './HistoryPanel';
 import { Storage } from './Storage';
 import vegaEmbed from 'vega-embed';
+import { INPUT_V_PADDING, MAX_INPUT_HEIGHT } from './constants';
 
 // Configure marked for safe rendering
 marked.setOptions({
@@ -205,8 +206,8 @@ export class ChatWidgetCore {
     const inputContainer = document.createElement('div');
     inputContainer.className = 'chat-widget-input';
 
-    const input = document.createElement('input');
-    input.type = 'text';
+    const input = document.createElement('textarea');
+    input.rows = 1;
     input.placeholder = this.options.placeholder || 'Type your message...';
 
     const sendButton = document.createElement('button');
@@ -361,25 +362,31 @@ export class ChatWidgetCore {
     const sendButton = this.widgetElement.querySelector('.chat-widget-send');
     if (sendButton) {
       sendButton.addEventListener('click', () => {
-        const input = this.widgetElement?.querySelector<HTMLInputElement>(
-          '.chat-widget-input input[type="text"]'
+        const input = this.widgetElement?.querySelector<HTMLTextAreaElement>(
+          '.chat-widget-input textarea'
         );
         if (input && input.value.trim()) {
           this.sendMessage(input.value);
+          resizeInput(input, INPUT_V_PADDING, MAX_INPUT_HEIGHT);
         }
       });
     }
 
-    // Input keypress (Enter)
-    const input = this.widgetElement.querySelector<HTMLInputElement>(
-      '.chat-widget-input input[type="text"]'
+    // Input keypress and input events
+    const input = this.widgetElement.querySelector<HTMLTextAreaElement>(
+      '.chat-widget-input textarea'
     );
     if (input) {
       input.addEventListener('keypress', (e) => {
         if (e.key === 'Enter' && input.value.trim()) {
+          e.preventDefault();
           this.sendMessage(input.value);
+          resizeInput(input, INPUT_V_PADDING, MAX_INPUT_HEIGHT);
         }
       });
+      input.addEventListener('input', () =>
+        resizeInput(input, INPUT_V_PADDING, MAX_INPUT_HEIGHT)
+      );
     }
 
     // File input change
@@ -573,8 +580,8 @@ export class ChatWidgetCore {
 
     this.addMessage(message);
 
-    const input = this.widgetElement?.querySelector<HTMLInputElement>(
-      '.chat-widget-input input[type="text"]'
+    const input = this.widgetElement?.querySelector<HTMLTextAreaElement>(
+      '.chat-widget-input textarea'
     );
     if (input) {
       input.value = '';
@@ -1062,8 +1069,8 @@ export class ChatWidgetCore {
     this.clearFileSelection();
 
     // Clear the input field
-    const input = this.widgetElement?.querySelector<HTMLInputElement>(
-      ".chat-widget-input input[type='text']"
+    const input = this.widgetElement?.querySelector<HTMLTextAreaElement>(
+      '.chat-widget-input textarea'
     );
     if (input) {
       input.value = '';
