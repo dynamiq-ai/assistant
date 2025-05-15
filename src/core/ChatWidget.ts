@@ -97,7 +97,6 @@ export class ChatWidgetCore {
           <div id="${chartId}" class="chat-message-chart" data-chart-spec="${escapedSpec}"></div>
           </div>`;
         } catch {
-          console.log('chart not yet ready');
           return 'Building chart...';
         }
       }
@@ -750,7 +749,7 @@ export class ChatWidgetCore {
           const events = value.trim().split('\n\r');
 
           events.forEach((eventLine) => {
-            const [eventTypeLine, dataLine] = eventLine.trim().split('\n');
+            const [eventTypeLine, dataLine] = eventLine.trim().split('\r\n');
             const eventType = eventTypeLine.trim().split(': ')[1];
 
             if (eventType === 'data') {
@@ -762,7 +761,7 @@ export class ChatWidgetCore {
                 // Check for content in the right location
                 const content = parsed?.data?.choices?.[0]?.delta?.content;
                 const newStep = parsed?.data?.choices?.[0]?.delta?.step;
-                if (content) {
+                if (content && typeof content === 'string') {
                   message =
                     message +
                     (newStep ? (newStep !== step ? '\n\n' : '') : '') +
@@ -1015,7 +1014,6 @@ export class ChatWidgetCore {
           const chartSpec = JSON.parse(specString);
           await vegaEmbed(`#${chartId}`, chartSpec, { actions: false });
         } catch {
-          console.log('chart not yet ready');
           chartDiv.innerHTML = 'Error rendering chart data.';
         }
       } else {
