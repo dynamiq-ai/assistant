@@ -72,6 +72,7 @@ export const updateChartCode = (initialCode: any, primaryColor: string) => {
   return {
     ...CHART_ADDITIONAL_DATA,
     ...initialCode,
+    width: 'container',
     mark: updatedMark,
   };
 };
