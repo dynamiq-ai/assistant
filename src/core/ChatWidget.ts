@@ -6,7 +6,12 @@ import {
   HistoryChat,
 } from './types';
 import './styles.css';
-import { getRelativeTimeString, resizeInput, updateChartCode } from './utils';
+import {
+  getRelativeTimeString,
+  processMessageText,
+  resizeInput,
+  updateChartCode,
+} from './utils';
 import { marked } from 'marked';
 import HistoryPanel from './HistoryPanel';
 import { Storage } from './Storage';
@@ -831,7 +836,7 @@ export class ChatWidgetCore {
     this.addMessage(botMessage);
     if (streaming) {
       return (message: string) => {
-        this.updateMessage(messageId, message);
+        this.updateMessage(messageId, processMessageText(message));
       };
     }
   }
@@ -939,7 +944,7 @@ export class ChatWidgetCore {
     } else {
       // Parse markdown if the message is from the bot and markdown is enabled
       if (message.sender === 'bot') {
-        const rawHtml = await marked(message.text);
+        const rawHtml = await marked(processMessageText(message.text));
         textElement.innerHTML = rawHtml;
         textElement.className += ' chat-message-markdown';
         // After setting innerHTML, find and render charts

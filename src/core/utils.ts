@@ -91,3 +91,11 @@ export function resizeInput(
   const newHeight = input.scrollHeight - vPadding;
   input.style.height = `${Math.min(newHeight, maxHeight)}px`;
 }
+
+export function processMessageText(text: string) {
+  // Remove leading spaces from each line to prevent code block treatment
+  return text
+    .split('\n')
+    .map((line) => line.trimStart())
+    .join('\n');
+}
