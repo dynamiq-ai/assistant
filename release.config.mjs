@@ -1,5 +1,3 @@
-import { release } from 'process';
-
 /**
  * @type {import('semantic-release').GlobalConfig}
  */
