@@ -14,7 +14,7 @@ npm install @dynamiq/assistant marked@15 vega@5.33.0 vega-lite@5.23.0 vega-embed
 
 ## Usage
 
-To use `@dynamiq/assistant`, first you have to go to the Deployments, make sure you have disabled `Endpoint Authorization`. Then click on the `Endpoint` tab and copy the url from `endpoint` variable.
+To use `@dynamiq/assistant`, first you have to go to the Deployments, make sure you have disabled `Endpoint Authorization`. Then click on the `Integration` tab and switch to `Chat Widget` menu item. It will show different options to embed the assistant.
 
 <img width="1496" alt="image" src="https://raw.githubusercontent.com/dynamiq-ai/assistant/refs/heads/main/assets/dynamiq-app.png">
 
