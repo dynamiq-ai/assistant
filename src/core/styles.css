@@ -48,9 +48,9 @@
 
 .chat-widget-container {
   position: absolute;
-  bottom: 70px;
-  width: 400px;
-  height: 600px;
+  bottom: -20px;
+  width: 100vw;
+  height: 100vh;
   background-color: white;
   border-radius: 16px;
   box-shadow: 0 5px 40px rgba(0, 0, 0, 0.12);
@@ -58,6 +58,14 @@
   flex-direction: column;
   overflow: hidden;
   transition: all 0.3s ease;
+}
+
+@media only screen and (min-width: 768px) {
+  .chat-widget-container {
+    bottom: 70px;
+    width: 400px;
+    height: 600px;
+  }
 }
 
 .chat-widget-container-full-screen {
@@ -70,23 +78,49 @@
 
 /* Add these rules for different positions */
 .chat-widget-bottom-right .chat-widget-container {
-  right: 0;
+  right: -20px;
+}
+
+@media only screen and (min-width: 768px) {
+  .chat-widget-bottom-right .chat-widget-container {
+    right: 0;
+  }
 }
 
 .chat-widget-bottom-left .chat-widget-container {
-  left: 0;
+  left: -20px;
+}
+
+@media only screen and (min-width: 768px) {
+  .chat-widget-bottom-left .chat-widget-container {
+    left: 0;
+  }
 }
 
 .chat-widget-top-right .chat-widget-container {
-  right: 0;
+  right: -20px;
   bottom: auto;
-  top: 70px;
+  top: -20px;
+}
+
+@media only screen and (min-width: 768px) {
+  .chat-widget-top-right .chat-widget-container {
+    right: 0;
+    top: 70px;
+  }
 }
 
 .chat-widget-top-left .chat-widget-container {
-  left: 0;
+  left: -20px;
   bottom: auto;
-  top: 70px;
+  top: -20px;
+}
+
+@media only screen and (min-width: 768px) {
+  .chat-widget-top-left .chat-widget-container {
+    left: 0;
+    top: 70px;
+  }
 }
 
 .chat-widget-header {
@@ -151,6 +185,14 @@
   color: #666;
   font-size: 14px;
   cursor: pointer;
+  /* hide on mobile */
+  display: none;
+}
+
+@media only screen and (min-width: 768px) {
+  .chat-widget-full-screen {
+    display: block;
+  }
 }
 
 .chat-widget-content {
