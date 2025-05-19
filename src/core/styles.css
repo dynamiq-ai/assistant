@@ -602,6 +602,11 @@
   justify-content: center;
 }
 
+.chat-widget-send:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
 .chat-widget-footer,
 .chat-widget-powered-by {
   padding: 12px 16px;
