@@ -597,8 +597,10 @@ export class ChatWidgetCore {
     // If API is configured, send the message to the API
     if (this.apiConfig) {
       this.showLoadingSpinner();
+      this.blockSendButton();
       this.handleApiCommunication(message).finally(() => {
         this.hideLoadingSpinner();
+        this.unblockSendButton();
       });
     }
   }
@@ -1179,6 +1181,22 @@ export class ChatWidgetCore {
 
       this.params.sessionId = sessionId;
       this.params.userId = chat.userId;
+    }
+  }
+
+  private blockSendButton(): void {
+    const sendButton =
+      this.widgetElement?.querySelector<HTMLButtonElement>('.chat-widget-send');
+    if (sendButton) {
+      sendButton.disabled = true;
+    }
+  }
+
+  private unblockSendButton(): void {
+    const sendButton =
+      this.widgetElement?.querySelector<HTMLButtonElement>('.chat-widget-send');
+    if (sendButton) {
+      sendButton.disabled = false;
     }
   }
 }
