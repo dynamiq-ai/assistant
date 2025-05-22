@@ -4,6 +4,7 @@ export interface ChatMessage {
   sender: 'user' | 'bot';
   timestamp: number;
   files?: File[];
+  intermediateSteps?: string[];
 }
 
 export interface ApiConfig {
@@ -49,6 +50,7 @@ export interface ChatWidgetOptions {
     icon: string | React.ReactNode;
     text: string;
   }[];
+  intermediateStreaming?: boolean;
 }
 
 export interface HistoryChat {
@@ -57,4 +59,15 @@ export interface HistoryChat {
   messages: ChatMessage[];
   title: string;
   updatedAt: number;
+}
+
+export interface ContentTypes {
+  analysis?: string;
+  thought?: string;
+  tool?: {
+    id: string;
+    name: string;
+  };
+  name?: string;
+  [key: string]: unknown;
 }

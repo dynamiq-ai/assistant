@@ -4,6 +4,7 @@ import {
   ApiConfig,
   CustomParams,
   HistoryChat,
+  ContentTypes,
 } from './types';
 import './styles.css';
 import {
@@ -17,6 +18,7 @@ import HistoryPanel from './HistoryPanel';
 import { Storage } from './Storage';
 import vegaEmbed from 'vega-embed';
 import { INPUT_V_PADDING, MAX_INPUT_HEIGHT } from './constants';
+import { UIComponents } from './components/UIComponents';
 
 // Configure marked for safe rendering
 marked.setOptions({
@@ -55,6 +57,7 @@ export class ChatWidgetCore {
       allowFileUpload: false,
       maxFileSize: 5 * 1024 * 1024, // 5MB default
       acceptedFileTypes: '*', // All file types by default
+      intermediateStreaming: true,
       ...options,
     };
 
@@ -133,163 +136,43 @@ export class ChatWidgetCore {
 
   private createWidget(): void {
     // Create the main widget container
-    const widget = document.createElement('div');
-    widget.className = `chat-widget chat-widget-${this.options.position}`;
-
-    // Set custom CSS variables for theming
-    if (this.options.theme) {
-      widget.style.setProperty(
-        '--primary-color',
-        this.options.theme.primaryColor || '#6c5ce7'
-      );
-      widget.style.setProperty(
-        '--secondary-color',
-        this.options.theme.secondaryColor || '#f5f5f5'
-      );
-      widget.style.setProperty(
-        '--font-family',
-        this.options.theme.fontFamily || 'Inter, sans-serif'
-      );
-    }
+    const widget = UIComponents.createWidget(this.options);
 
     // Create the toggle button
-    const toggleButton = document.createElement('button');
-    toggleButton.className = 'chat-widget-toggle';
-    toggleButton.innerHTML =
-      '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>';
+    const toggleButton = this.options.toggleButton
+      ? document.getElementById(this.options.toggleButton)
+      : UIComponents.createToggleButton();
 
     // Create the chat container
-    const chatContainer = document.createElement('div');
-    chatContainer.className = 'chat-widget-container';
-    chatContainer.style.display = 'none';
+    const chatContainer = UIComponents.createChatContainer();
 
     // Create the chat header
-    const header = document.createElement('div');
-    header.className = 'chat-widget-header';
-
-    const title = document.createElement('h3');
-    title.innerHTML = (this.options.title as string) || 'Chat Assistant';
-
-    const headerActions = document.createElement('div');
-    headerActions.className = 'chat-widget-header-actions';
-
-    // Add the New Chat button
-    const newChatButton = document.createElement('button');
-    newChatButton.className = 'chat-widget-new-chat';
-    newChatButton.innerHTML =
-      '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg> New Chat';
-
-    const closeButton = document.createElement('button');
-    closeButton.className = 'chat-widget-close';
-    closeButton.innerHTML = '&times;';
-
-    const fullScreenButton = document.createElement('button');
-    fullScreenButton.className = 'chat-widget-full-screen';
-    fullScreenButton.innerHTML =
-      '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"></path></svg>';
-
-    headerActions.appendChild(newChatButton);
-    if (this.options.allowFullScreen) {
-      headerActions.appendChild(fullScreenButton);
-    }
-    headerActions.appendChild(closeButton);
-
-    header.appendChild(title);
-    header.appendChild(headerActions);
+    const header = UIComponents.createHeader(this.options);
 
     // Create content container
-    const contentContainer = document.createElement('div');
-    contentContainer.className = 'chat-widget-content';
+    const contentContainer = UIComponents.createContentContainer();
 
-    // Create the messages container
-    const messagesContainer = document.createElement('div');
-    messagesContainer.className = 'chat-widget-messages';
-    messagesContainer.style.display = 'none';
-    contentContainer.appendChild(messagesContainer);
     // Create the input area
-    const inputContainer = document.createElement('div');
-    inputContainer.className = 'chat-widget-input';
+    const inputContainer = UIComponents.createInputContainer(this.options);
 
-    const input = document.createElement('textarea');
-    input.rows = 1;
-    input.placeholder = this.options.placeholder || 'Type your message...';
-
-    const sendButton = document.createElement('button');
-    sendButton.className = 'chat-widget-send';
-    sendButton.innerHTML =
-      '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>';
-
-    // Add file upload button if enabled
-    if (this.options.allowFileUpload) {
-      const fileInputContainer = document.createElement('div');
-      fileInputContainer.className = 'chat-widget-file-input-container';
-
-      const fileInput = document.createElement('input');
-      fileInput.type = 'file';
-      fileInput.id = 'chat-widget-file-input';
-      fileInput.className = 'chat-widget-file-input';
-      fileInput.multiple = true;
-      fileInput.accept = this.options.acceptedFileTypes || '*';
-
-      const fileButton = document.createElement('button');
-      fileButton.className = 'chat-widget-file-button';
-      fileButton.innerHTML =
-        '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>';
-      fileButton.title = 'Attach files';
-
-      fileInputContainer.appendChild(fileInput);
-      fileInputContainer.appendChild(fileButton);
-
-      inputContainer.appendChild(fileInputContainer);
-    }
-
-    inputContainer.appendChild(input);
-    inputContainer.appendChild(sendButton);
     // Create the human support link
-    const humanSupportContainer = document.createElement('div');
-    humanSupportContainer.className = 'chat-widget-human-support';
-    humanSupportContainer.innerHTML = this.options.humanSupport ?? '';
+    const humanSupportContainer = this.options.humanSupport
+      ? UIComponents.createHumanSupport(this.options)
+      : null;
 
     // Create footer
-    const footer = document.createElement('div');
-    footer.className = 'chat-widget-footer';
-    footer.innerHTML = this.options.footerText || '';
+    const footer = this.options.footerText
+      ? UIComponents.createFooter(this.options)
+      : null;
 
     // Add powered by section
-    const poweredByContainer = document.createElement('div');
-    poweredByContainer.className = 'chat-widget-powered-by';
-    poweredByContainer.innerHTML = this.options.poweredBy || '';
+    const poweredByContainer = this.options.poweredBy
+      ? UIComponents.createPoweredBy(this.options)
+      : null;
 
     // Add welcome screen
-    const welcomeScreen = document.createElement('div');
-    welcomeScreen.className = 'chat-widget-welcome-screen';
-    // add title and subtitle
-    const welcomeTitle = document.createElement('h3');
-    welcomeTitle.className = 'chat-widget-welcome-title';
-    welcomeTitle.textContent = this.options.welcomeTitle!;
-    const welcomeSubtitle = document.createElement('p');
-    welcomeSubtitle.className = 'chat-widget-welcome-subtitle';
-    welcomeSubtitle.textContent = this.options.welcomeSubtitle!;
-    welcomeScreen.appendChild(welcomeTitle);
-    welcomeScreen.appendChild(welcomeSubtitle);
+    const welcomeScreen = UIComponents.createWelcomeScreen(this.options);
     contentContainer.appendChild(welcomeScreen);
-
-    // Add prompts
-    if (this.options.prompts) {
-      const promptsContainer = document.createElement('div');
-      promptsContainer.className = 'chat-widget-prompts';
-      this.options.prompts.forEach((prompt) => {
-        const promptElement = document.createElement('button');
-        promptElement.type = 'button';
-        promptElement.className = 'chat-widget-prompt';
-        promptElement.innerHTML = `${prompt.icon} ${prompt.text}`;
-        promptElement.addEventListener('click', () => {
-          this.sendMessage(prompt.text);
-        });
-        promptsContainer.appendChild(promptElement);
-      });
-      welcomeScreen.appendChild(promptsContainer);
-    }
 
     // Chat panel holds everything except the header
     const chatPanel = document.createElement('div');
@@ -309,18 +192,18 @@ export class ChatWidgetCore {
     chatContainer.appendChild(header);
     chatContainer.appendChild(chatPanel);
 
-    if (this.options.humanSupport) {
+    if (humanSupportContainer) {
       chatMain.appendChild(humanSupportContainer);
     }
-    if (this.options.footerText) {
+    if (footer) {
       chatMain.appendChild(footer);
     }
-    if (this.options.poweredBy) {
+    if (poweredByContainer) {
       chatMain.appendChild(poweredByContainer);
     }
 
     // Assemble the widget
-    if (!this.options.toggleButton) {
+    if (!this.options.toggleButton && toggleButton) {
       widget.appendChild(toggleButton);
     }
     widget.appendChild(chatContainer);
@@ -361,6 +244,17 @@ export class ChatWidgetCore {
     if (fullScreenButton) {
       fullScreenButton.addEventListener('click', () => this.toggleFullScreen());
     }
+
+    // Welcome screen click
+    const promptsButtons =
+      this.widgetElement.querySelectorAll<HTMLButtonElement>(
+        '.chat-widget-prompt'
+      );
+    promptsButtons.forEach((button) => {
+      button.addEventListener('click', () =>
+        this.sendMessage(button.dataset.prompt!)
+      );
+    });
 
     // Send button click
     const sendButton = this.widgetElement.querySelector('.chat-widget-send');
@@ -763,6 +657,7 @@ export class ChatWidgetCore {
                 // Check for content in the right location
                 const content = parsed?.data?.choices?.[0]?.delta?.content;
                 const newStep = parsed?.data?.choices?.[0]?.delta?.step;
+
                 if (content && typeof content === 'string') {
                   message =
                     message +
@@ -772,6 +667,8 @@ export class ChatWidgetCore {
                     updateMessage(message);
                   }
                   step = newStep;
+                } else if (content && typeof content === 'object') {
+                  this.handleIntermediateStreaming(content);
                 }
               } catch (error) {
                 console.error('Failed to parse JSON:', error);
@@ -791,11 +688,24 @@ export class ChatWidgetCore {
           if (chat) {
             chat.messages = chat.messages.map((m) => {
               if (m.id === lastMessage.id) {
-                return { ...m, text: message };
+                return {
+                  ...m,
+                  text: message,
+                  intermediateSteps: lastMessage.intermediateSteps,
+                };
               }
               return m;
             });
             this.storage.updateChat(chat);
+          }
+
+          // hide the intermediate steps container
+          const intermediateStepsContainer =
+            this.widgetElement?.querySelector<HTMLDetailsElement>(
+              `#chat-message-${lastMessage.id} .chat-message-intermediate-steps`
+            );
+          if (intermediateStepsContainer) {
+            intermediateStepsContainer.open = false;
           }
         }
       } else {
@@ -819,6 +729,54 @@ export class ChatWidgetCore {
       this.addBotMessage(
         'Sorry, there was an error processing your message. Please try again later.'
       );
+    }
+  }
+
+  private handleIntermediateStreaming(content: ContentTypes) {
+    if (!this.options.intermediateStreaming) {
+      return;
+    }
+
+    if (content.thought) {
+      const lastMessage = this.messages.at(-1);
+      if (lastMessage) {
+        lastMessage.intermediateSteps = [
+          ...(lastMessage.intermediateSteps ?? []),
+          content.thought,
+        ];
+        const message = this.widgetElement?.querySelector(
+          `#chat-message-${lastMessage.id}`
+        );
+
+        if (!message) {
+          return;
+        }
+
+        let intermediateStepsContainer =
+          message.querySelector<HTMLDetailsElement>(
+            '.chat-message-intermediate-steps'
+          );
+        if (intermediateStepsContainer) {
+          intermediateStepsContainer.appendChild(
+            UIComponents.createIntermediateStep(content.thought)
+          );
+          intermediateStepsContainer.open = true;
+        } else {
+          intermediateStepsContainer = UIComponents.createIntermediateSteps(
+            lastMessage.intermediateSteps
+          );
+          message
+            .querySelector('.chat-message-content')
+            ?.prepend(intermediateStepsContainer);
+          intermediateStepsContainer.open = true;
+        }
+        const messagesContainer = this.widgetElement?.querySelector(
+          '.chat-widget-messages'
+        );
+        if (messagesContainer) {
+          messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+      }
     }
   }
 
@@ -923,6 +881,10 @@ export class ChatWidgetCore {
     const contentContainer = document.createElement('div');
     contentContainer.className = 'chat-message-content';
 
+    const intermediateStepsContainer = message.intermediateSteps
+      ? UIComponents.createIntermediateSteps(message.intermediateSteps)
+      : null;
+
     // Create text element
     const textElement = document.createElement('div');
     textElement.className = 'chat-message-text';
@@ -967,6 +929,9 @@ export class ChatWidgetCore {
     timestamp.textContent = timeText;
 
     // Assemble the message
+    if (this.options.intermediateStreaming && intermediateStepsContainer) {
+      contentContainer.appendChild(intermediateStepsContainer);
+    }
     contentContainer.appendChild(textElement);
     contentContainer.appendChild(timestamp);
 
