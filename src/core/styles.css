@@ -942,3 +942,120 @@
 .chat-message--full-width > .chat-message-content {
   width: 100%;
 }
+
+.chat-message-intermediate-steps {
+  margin: 12px 0;
+  border-radius: 12px;
+  background-color: color-mix(in srgb, var(--primary-color) 5%, transparent);
+  border: 1px solid color-mix(in srgb, var(--primary-color) 10%, transparent);
+  overflow: hidden;
+}
+
+.chat-message-intermediate-steps > summary {
+  padding: 5px 8px;
+  font-weight: 500;
+  font-size: 14px;
+  color: var(--text-color);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: background-color 0.2s ease;
+  user-select: none;
+}
+
+.chat-message-intermediate-steps[open] > summary {
+  color: var(--primary-color);
+}
+
+.chat-message-intermediate-steps > summary:hover {
+  background-color: color-mix(in srgb, var(--primary-color) 5%, transparent);
+  color: var(--primary-color);
+}
+
+.chat-message-intermediate-steps > summary::marker {
+  content: '';
+}
+
+.chat-message-intermediate-steps > summary::before {
+  content: '🤔 Show thinking';
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.chat-message-intermediate-steps[open] > summary::before {
+  content: '💡 Hide thinking';
+}
+
+.chat-message-intermediate-step {
+  position: relative;
+  margin: 0;
+  padding: 12px 16px 12px 40px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: color-mix(in srgb, var(--text-color) 60%, transparent);
+  border-top: 1px solid color-mix(in srgb, var(--primary-color) 10%, transparent);
+  transition: background-color 0.2s ease;
+  user-select: none;
+}
+
+.chat-message-intermediate-step:last-child {
+  border-bottom: none;
+}
+
+.chat-message-intermediate-step::before {
+  content: '';
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--primary-color);
+  opacity: 0.5;
+}
+
+.chat-message-intermediate-step::after {
+  content: '';
+  position: absolute;
+  left: 19px;
+  top: 0;
+  width: 2px;
+  height: 100%;
+  background-color: var(--primary-color);
+  opacity: 0.2;
+}
+
+.chat-message-intermediate-step:first-of-type:last-of-type::after {
+  display: none;
+}
+
+.chat-message-intermediate-step:first-of-type::after {
+  height: 50%;
+  top: 50%;
+}
+
+.chat-message-intermediate-step:last-child::after {
+  height: 50%;
+}
+
+.chat-message-intermediate-step:hover {
+  background-color: color-mix(in srgb, var(--primary-color) 5%, transparent);
+}
+
+.chat-message-intermediate-steps::details-content {
+  transition: height 0.5s ease, content-visibility 0.5s ease allow-discrete;
+  height: 0;
+  overflow: clip;
+}
+
+/* Browser supports interpolate-size */
+@supports (interpolate-size: allow-keywords) {
+  :root {
+    interpolate-size: allow-keywords;
+  }
+
+  .chat-message-intermediate-steps[open]::details-content {
+    height: auto;
+  }
+}

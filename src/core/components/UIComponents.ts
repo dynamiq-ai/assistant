@@ -189,4 +189,27 @@ export class UIComponents {
     humanSupportContainer.innerHTML = options.humanSupport ?? '';
     return humanSupportContainer;
   }
-} 
+
+  static createIntermediateSteps(steps: string[]): HTMLDetailsElement {
+    const intermediateStepsContainer = document.createElement('details');
+    intermediateStepsContainer.className = 'chat-message-intermediate-steps';
+
+    if (steps.length > 0) {
+      const summary = document.createElement('summary');
+      intermediateStepsContainer.appendChild(summary);
+      steps.forEach((step) => {
+        const stepElement = UIComponents.createIntermediateStep(step);
+        intermediateStepsContainer.appendChild(stepElement);
+      });
+    }
+
+    return intermediateStepsContainer;
+  }
+
+  static createIntermediateStep(step: string): HTMLDivElement {
+    const stepElement = document.createElement('div');
+    stepElement.className = 'chat-message-intermediate-step';
+    stepElement.textContent = step;
+    return stepElement;
+  }
+}

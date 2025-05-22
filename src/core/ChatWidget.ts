@@ -4,6 +4,7 @@ import {
   ApiConfig,
   CustomParams,
   HistoryChat,
+  ContentTypes,
 } from './types';
 import './styles.css';
 import {
@@ -56,6 +57,7 @@ export class ChatWidgetCore {
       allowFileUpload: false,
       maxFileSize: 5 * 1024 * 1024, // 5MB default
       acceptedFileTypes: '*', // All file types by default
+      intermediateStreaming: true,
       ...options,
     };
 
@@ -655,6 +657,7 @@ export class ChatWidgetCore {
                 // Check for content in the right location
                 const content = parsed?.data?.choices?.[0]?.delta?.content;
                 const newStep = parsed?.data?.choices?.[0]?.delta?.step;
+
                 if (content && typeof content === 'string') {
                   message =
                     message +
@@ -664,6 +667,8 @@ export class ChatWidgetCore {
                     updateMessage(message);
                   }
                   step = newStep;
+                } else if (content && typeof content === 'object') {
+                  this.handleIntermediateStreaming(content);
                 }
               } catch (error) {
                 console.error('Failed to parse JSON:', error);
@@ -683,11 +688,24 @@ export class ChatWidgetCore {
           if (chat) {
             chat.messages = chat.messages.map((m) => {
               if (m.id === lastMessage.id) {
-                return { ...m, text: message };
+                return {
+                  ...m,
+                  text: message,
+                  intermediateSteps: lastMessage.intermediateSteps,
+                };
               }
               return m;
             });
             this.storage.updateChat(chat);
+          }
+
+          // hide the intermediate steps container
+          const intermediateStepsContainer =
+            this.widgetElement?.querySelector<HTMLDetailsElement>(
+              `#chat-message-${lastMessage.id} .chat-message-intermediate-steps`
+            );
+          if (intermediateStepsContainer) {
+            intermediateStepsContainer.open = false;
           }
         }
       } else {
@@ -711,6 +729,54 @@ export class ChatWidgetCore {
       this.addBotMessage(
         'Sorry, there was an error processing your message. Please try again later.'
       );
+    }
+  }
+
+  private handleIntermediateStreaming(content: ContentTypes) {
+    if (!this.options.intermediateStreaming) {
+      return;
+    }
+
+    if (content.thought) {
+      const lastMessage = this.messages.at(-1);
+      if (lastMessage) {
+        lastMessage.intermediateSteps = [
+          ...(lastMessage.intermediateSteps ?? []),
+          content.thought,
+        ];
+        const message = this.widgetElement?.querySelector(
+          `#chat-message-${lastMessage.id}`
+        );
+
+        if (!message) {
+          return;
+        }
+
+        let intermediateStepsContainer =
+          message.querySelector<HTMLDetailsElement>(
+            '.chat-message-intermediate-steps'
+          );
+        if (intermediateStepsContainer) {
+          intermediateStepsContainer.appendChild(
+            UIComponents.createIntermediateStep(content.thought)
+          );
+          intermediateStepsContainer.open = true;
+        } else {
+          intermediateStepsContainer = UIComponents.createIntermediateSteps(
+            lastMessage.intermediateSteps
+          );
+          message
+            .querySelector('.chat-message-content')
+            ?.prepend(intermediateStepsContainer);
+          intermediateStepsContainer.open = true;
+        }
+        const messagesContainer = this.widgetElement?.querySelector(
+          '.chat-widget-messages'
+        );
+        if (messagesContainer) {
+          messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+      }
     }
   }
 
@@ -815,6 +881,10 @@ export class ChatWidgetCore {
     const contentContainer = document.createElement('div');
     contentContainer.className = 'chat-message-content';
 
+    const intermediateStepsContainer = message.intermediateSteps
+      ? UIComponents.createIntermediateSteps(message.intermediateSteps)
+      : null;
+
     // Create text element
     const textElement = document.createElement('div');
     textElement.className = 'chat-message-text';
@@ -859,6 +929,9 @@ export class ChatWidgetCore {
     timestamp.textContent = timeText;
 
     // Assemble the message
+    if (this.options.intermediateStreaming && intermediateStepsContainer) {
+      contentContainer.appendChild(intermediateStepsContainer);
+    }
     contentContainer.appendChild(textElement);
     contentContainer.appendChild(timestamp);
 
