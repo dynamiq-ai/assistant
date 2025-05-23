@@ -106,6 +106,13 @@ export class UIComponents {
     sendButton.innerHTML =
       '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>';
 
+    const abortButton = document.createElement('button');
+    abortButton.className = 'chat-widget-abort';
+    abortButton.type = 'button';
+    abortButton.innerHTML =
+      '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="2" fill="currentColor" stroke="currentColor"/></svg>';
+    abortButton.title = 'Stop generating';
+
     // Add file upload button if enabled
     if (options.allowFileUpload) {
       const fileInputContainer = document.createElement('div');
@@ -132,6 +139,7 @@ export class UIComponents {
 
     inputContainer.appendChild(input);
     inputContainer.appendChild(sendButton);
+    inputContainer.appendChild(abortButton);
 
     return inputContainer;
   }
