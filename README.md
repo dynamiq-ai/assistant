@@ -139,3 +139,9 @@ These are all the props you can pass to the `<DynamiqAssistant />` component.
 | `poweredBy`             | `string`              | The text to show in the powered by section.                                                      |
 | `humanSupport`          | `string`              | The text to show in the human support section.                                                   |
 | `intermediateStreaming` | `boolean`             | Whether to show the intermediate steps if they are available. By default `true`.                 |
+
+## Events
+
+| Name         | Description                                   |
+| ------------ | --------------------------------------------- |
+| `onFeedback` | The callback function to handle the feedback. |
