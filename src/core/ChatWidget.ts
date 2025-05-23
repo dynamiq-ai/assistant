@@ -39,6 +39,7 @@ export class ChatWidgetCore {
   private relativeTimeInterval: NodeJS.Timeout | null = null;
   private params: CustomParams;
   private storage: Storage;
+  private abortController: AbortController | null = null;
 
   constructor(container: HTMLElement, options: ChatWidgetOptions = {}) {
     this.container = container;
@@ -270,6 +271,24 @@ export class ChatWidgetCore {
       });
     }
 
+    // Abort button click
+    const abortButton = this.widgetElement.querySelector('.chat-widget-abort');
+    if (abortButton) {
+      abortButton.addEventListener('click', () => {
+        this.abortController?.abort();
+        this.hideLoadingSpinner();
+        const lastMessage = this.messages.at(-1);
+        if (lastMessage?.text !== '') {
+          this.finalizeLastMessage();
+        } else {
+          this.messages = this.messages.slice(0, -1);
+          this.widgetElement
+            ?.querySelector<HTMLDivElement>(`#chat-message-${lastMessage.id}`)
+            ?.remove();
+        }
+      });
+    }
+
     // Input keypress and input events
     const input = this.widgetElement.querySelector<HTMLTextAreaElement>(
       '.chat-widget-input textarea'
@@ -491,10 +510,10 @@ export class ChatWidgetCore {
     // If API is configured, send the message to the API
     if (this.apiConfig) {
       this.showLoadingSpinner();
-      this.blockSendButton();
+      this.toggleGeneratingState(true);
       this.handleApiCommunication(message).finally(() => {
         this.hideLoadingSpinner();
-        this.unblockSendButton();
+        this.toggleGeneratingState(false);
       });
     }
   }
@@ -581,6 +600,7 @@ export class ChatWidgetCore {
     if (!this.apiConfig) {
       return;
     }
+    this.abortController = new AbortController();
 
     try {
       // Create FormData for the request
@@ -623,6 +643,7 @@ export class ChatWidgetCore {
         method: 'POST',
         headers: this.apiConfig.headers || {},
         body: formData,
+        signal: this.abortController.signal,
       });
 
       if (this.apiConfig.streaming) {
@@ -638,6 +659,7 @@ export class ChatWidgetCore {
         while (true) {
           const { done, value } = await reader.read();
           if (done) {
+            this.abortController = null;
             break;
           }
 
@@ -677,37 +699,7 @@ export class ChatWidgetCore {
           });
         }
         // finalize the message
-        const lastMessage = this.messages.at(-1);
-        if (lastMessage) {
-          lastMessage.text = message;
-          // update the message in the history
-          const chats = this.storage.getChats();
-          const chat = chats.find(
-            (h: HistoryChat) => h.sessionId === this.params.sessionId
-          );
-          if (chat) {
-            chat.messages = chat.messages.map((m) => {
-              if (m.id === lastMessage.id) {
-                return {
-                  ...m,
-                  text: message,
-                  intermediateSteps: lastMessage.intermediateSteps,
-                };
-              }
-              return m;
-            });
-            this.storage.updateChat(chat);
-          }
-
-          // hide the intermediate steps container
-          const intermediateStepsContainer =
-            this.widgetElement?.querySelector<HTMLDetailsElement>(
-              `#chat-message-${lastMessage.id} .chat-message-intermediate-steps`
-            );
-          if (intermediateStepsContainer) {
-            intermediateStepsContainer.open = false;
-          }
-        }
+        this.finalizeLastMessage();
       } else {
         if (!response.ok) {
           throw new Error(`API request failed with status ${response.status}`);
@@ -722,13 +714,54 @@ export class ChatWidgetCore {
             "I received your message but I don't have a response."
           );
         }
+        this.abortController = null;
       }
     } catch (error) {
-      console.error('Error sending message to API:', error);
-      // Add an error message to the chat
-      this.addBotMessage(
-        'Sorry, there was an error processing your message. Please try again later.'
+      console.log('Error sending message to API:', error);
+      if (this.abortController?.signal.aborted) {
+        this.abortController = null;
+      } else {
+        // Add an error message to the chat
+        this.addBotMessage(
+          'Sorry, there was an error processing your message. Please try again later.'
+        );
+      }
+    }
+  }
+
+  private finalizeLastMessage() {
+    const lastMessage = this.messages.at(-1);
+
+    if (!lastMessage) {
+      return;
+    }
+
+    // update the message in the history
+    const chats = this.storage.getChats();
+    const chat = chats.find(
+      (h: HistoryChat) => h.sessionId === this.params.sessionId
+    );
+    if (chat) {
+      chat.messages = chat.messages.map((m) => {
+        if (m.id === lastMessage.id) {
+          return {
+            ...m,
+            text: lastMessage.text,
+            intermediateSteps: lastMessage.intermediateSteps,
+          };
+        }
+        return m;
+      });
+      this.storage.updateChat(chat);
+    }
+
+    // hide the intermediate steps container
+    const intermediateStepsContainer =
+      this.widgetElement?.querySelector<HTMLDetailsElement>(
+        `#chat-message-${lastMessage.id} .chat-message-intermediate-steps`
       );
+    if (intermediateStepsContainer) {
+      intermediateStepsContainer.open = false;
     }
   }
 
@@ -795,6 +828,10 @@ export class ChatWidgetCore {
     this.addMessage(botMessage);
     if (streaming) {
       return (message: string) => {
+        const lastMessage = this.messages.find((m) => m.id === messageId);
+        if (lastMessage) {
+          lastMessage.text = message;
+        }
         this.updateMessage(messageId, processMessageText(message));
       };
     }
@@ -1149,19 +1186,11 @@ export class ChatWidgetCore {
     }
   }
 
-  private blockSendButton(): void {
-    const sendButton =
-      this.widgetElement?.querySelector<HTMLButtonElement>('.chat-widget-send');
-    if (sendButton) {
-      sendButton.disabled = true;
-    }
-  }
-
-  private unblockSendButton(): void {
-    const sendButton =
-      this.widgetElement?.querySelector<HTMLButtonElement>('.chat-widget-send');
-    if (sendButton) {
-      sendButton.disabled = false;
+  private toggleGeneratingState(generating: boolean): void {
+    if (generating) {
+      this.widgetElement?.classList.add('chat-widget-generating');
+    } else {
+      this.widgetElement?.classList.remove('chat-widget-generating');
     }
   }
 }
