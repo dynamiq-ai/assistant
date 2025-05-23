@@ -51,6 +51,11 @@ export interface ChatWidgetOptions {
     text: string;
   }[];
   intermediateStreaming?: boolean;
+  onFeedback?: (
+    feedback: 'positive' | 'negative',
+    message: ChatMessage,
+    params: CustomParams
+  ) => void;
 }
 
 export interface HistoryChat {

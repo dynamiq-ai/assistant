@@ -257,6 +257,29 @@ export class ChatWidgetCore {
       );
     });
 
+    // Message container click
+    const messageContainer = this.widgetElement.querySelector(
+      '.chat-widget-messages'
+    );
+    if (messageContainer) {
+      messageContainer.addEventListener('click', (e) => {
+        const target = e.target as HTMLElement;
+        if (target.matches('.chat-message-feedback-button')) {
+          const message = this.messages.find(
+            (m) => m.id === target.dataset.messageId
+          );
+          if (!message) {
+            return;
+          }
+          this.options.onFeedback?.(
+            target.dataset.feedback as 'positive' | 'negative',
+            message,
+            this.params
+          );
+        }
+      });
+    }
+
     // Send button click
     const sendButton = this.widgetElement.querySelector('.chat-widget-send');
     if (sendButton) {
@@ -971,6 +994,15 @@ export class ChatWidgetCore {
     }
     contentContainer.appendChild(textElement);
     contentContainer.appendChild(timestamp);
+
+    // Add feedback buttons for bot messages
+    if (
+      typeof this.options.onFeedback === 'function' &&
+      message.sender === 'bot'
+    ) {
+      const feedbackContainer = UIComponents.createFeedbackButtons(message.id);
+      contentContainer.appendChild(feedbackContainer);
+    }
 
     if (message.sender === 'user') {
       messageElement.appendChild(contentContainer);
