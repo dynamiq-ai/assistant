@@ -272,6 +272,7 @@ export class ChatWidgetCore {
             return;
           }
           this.options.onFeedback?.(
+            e,
             target.dataset.feedback as 'positive' | 'negative',
             message,
             this.params
