@@ -264,19 +264,25 @@ export class ChatWidgetCore {
     if (messageContainer) {
       messageContainer.addEventListener('click', (e) => {
         const target = e.target as HTMLElement;
-        if (target.matches('.chat-message-feedback-button')) {
-          const message = this.messages.find(
-            (m) => m.id === target.dataset.messageId
-          );
-          if (!message) {
-            return;
-          }
-          this.options.onFeedback?.(
-            target.dataset.feedback as 'positive' | 'negative',
-            message,
-            this.params
-          );
+        if (!target.matches('.chat-message-feedback-button')) {
+          return;
         }
+
+        const assistantMessageIndex = this.messages.findIndex(
+          (m) => m.id === target.dataset.messageId
+        );
+        if (assistantMessageIndex === -1) {
+          return;
+        }
+        const assistantMessage = this.messages.at(assistantMessageIndex)!;
+        const userMessage = this.messages.at(assistantMessageIndex - 1)!;
+
+        this.options.onFeedback?.(
+          e,
+          target.dataset.feedback as 'positive' | 'negative',
+          [userMessage, assistantMessage],
+          this.params
+        );
       });
     }
 

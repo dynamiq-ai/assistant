@@ -52,8 +52,9 @@ export interface ChatWidgetOptions {
   }[];
   intermediateStreaming?: boolean;
   onFeedback?: (
+    event: Event,
     feedback: 'positive' | 'negative',
-    message: ChatMessage,
+    messages: ChatMessage[],
     params: CustomParams
   ) => void;
 }
