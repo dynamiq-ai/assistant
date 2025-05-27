@@ -54,7 +54,7 @@ export interface ChatWidgetOptions {
   onFeedback?: (
     event: Event,
     feedback: 'positive' | 'negative',
-    message: ChatMessage,
+    messages: ChatMessage[],
     params: CustomParams
   ) => void;
 }
