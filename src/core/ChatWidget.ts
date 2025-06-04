@@ -13,7 +13,7 @@ import {
   resizeInput,
   updateChartCode,
 } from './utils';
-import { marked } from 'marked';
+import { marked, Renderer, type Tokens } from 'marked';
 import HistoryPanel from './HistoryPanel';
 import { Storage } from './Storage';
 import vegaEmbed from 'vega-embed';
@@ -77,8 +77,9 @@ export class ChatWidgetCore {
   }
 
   private setupMarkedRenderer(): void {
-    const renderer = new marked.Renderer();
+    const renderer = new Renderer();
     const originalCodeRenderer = renderer.code.bind(renderer);
+    const originalTableImpl = Renderer.prototype.table;
 
     // Render Vega charts in the chat widget in ```chart code block
     renderer.code = ({ text: code, lang: language, escaped }) => {
@@ -106,6 +107,21 @@ export class ChatWidgetCore {
       }
       return originalCodeRenderer({ text: code, lang: language, escaped });
     };
+
+    // Define our function with the correct runtime signature
+    const tableOverride = function (
+      this: Renderer,
+      header: string,
+      body: string
+    ): string {
+      const tableHtml = originalTableImpl.call(this, header, body);
+      return '<div style="overflow-x: auto;">' + tableHtml + '</div>';
+    };
+
+    // Assign with a cast through unknown to the type expected by the linter for the property
+    renderer.table = tableOverride as unknown as (
+      token: Tokens.Table
+    ) => string;
 
     marked.use({ renderer });
   }

@@ -277,7 +277,7 @@
 
 .chat-message {
   margin-bottom: 16px;
-  max-width: 85%;
+  max-width: 100%;
   display: flex;
   align-items: flex-start;
 }
@@ -818,6 +818,7 @@
   border-collapse: collapse;
   width: 100%;
   margin-bottom: 0.75em;
+  word-break: normal;
 }
 
 .chat-message-markdown table th {
