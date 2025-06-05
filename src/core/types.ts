@@ -57,6 +57,7 @@ export interface ChatWidgetOptions {
     messages: ChatMessage[],
     params: CustomParams
   ) => void;
+  onImageBlock?: (imageInfo: Record<string, string>) => string;
 }
 
 export interface HistoryChat {
