@@ -79,10 +79,11 @@ export class ChatWidgetCore {
   private setupMarkedRenderer(): void {
     const renderer = new Renderer();
     const originalCodeRenderer = renderer.code.bind(renderer);
+    const originalCodespanRenderer = renderer.codespan.bind(renderer);
     const originalTableImpl = Renderer.prototype.table;
 
-    // Render Vega charts in the chat widget in ```chart code block
     renderer.code = ({ text: code, lang: language, escaped }) => {
+      //Render Vega charts
       if (language === 'chart') {
         try {
           const initialCode = JSON.parse(code);
@@ -105,7 +106,35 @@ export class ChatWidgetCore {
           return 'Building chart...';
         }
       }
+      //Render code block images
+      if (language === 'image') {
+        console.log('image', code);
+        try {
+          const imageInfo = JSON.parse(code);
+          return this.options.onImageBlock?.(imageInfo) || '';
+        } catch {
+          return 'Loading image...';
+        }
+      }
+      console.log('language', language);
+      console.log('code', code);
+      console.log('escaped', escaped);
       return originalCodeRenderer({ text: code, lang: language, escaped });
+    };
+
+    //Render inline images
+    renderer.codespan = (token: Tokens.Codespan) => {
+      const { text } = token;
+      if (text.startsWith('image')) {
+        try {
+          const jsonData = text.slice(5).trim();
+          const imageInfo = JSON.parse(jsonData);
+          return this.options.onImageBlock?.(imageInfo) || '';
+        } catch {
+          return 'Loading image...';
+        }
+      }
+      return originalCodespanRenderer(token);
     };
 
     // Define our function with the correct runtime signature
