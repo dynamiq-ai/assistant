@@ -95,8 +95,12 @@ export function resizeInput(
 
 export function processMessageText(text: string) {
   // Remove leading spaces from each line to prevent code block treatment
-  return text
-    .split('\n')
-    .map((line) => line.trimStart())
-    .join('\n');
+  return (
+    text
+      .split('\n')
+      .map((line) => line.trimStart())
+      .join('\n')
+      // Remove double newlines artifacts
+      .replaceAll('\\n\\n', '\n')
+  );
 }
