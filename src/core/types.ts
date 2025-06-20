@@ -57,7 +57,7 @@ export interface ChatWidgetOptions {
     messages: ChatMessage[],
     params: CustomParams
   ) => void;
-  onImageBlock?: (imageInfo: string[]) => string[];
+  onImageBlock?: (imageInfo: string[]) => Promise<string[]>;
   onLink?: (linkInfo: Record<string, string>) => string;
 }
 

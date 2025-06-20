@@ -198,7 +198,7 @@ export class ChatWidgetCore {
     this.pendingContracts.add(imageInfo.contract);
   }
 
-  private processContractImages(messageId: string): void {
+  private async processContractImages(messageId: string): Promise<void> {
     if (this.pendingContracts.size === 0 || !this.options.onImageBlock) {
       return;
     }
@@ -206,29 +206,48 @@ export class ChatWidgetCore {
     // Collect all contract IDs as array
     const contractIds = Array.from(this.pendingContracts);
 
-    // Call onImageBlock with array of contract IDs
-    const result = this.options.onImageBlock(contractIds);
+    try {
+      // Call onImageBlock with array of contract IDs (now async)
+      const result = await this.options.onImageBlock(contractIds);
 
-    // Handle both single string and array of strings
-    const imageUrls = Array.isArray(result) ? result : [result];
+      // Handle both single string and array of strings
+      const imageUrls = Array.isArray(result) ? result : [result];
 
-    // Update images in the DOM
-    if (imageUrls.length > 0) {
+      // Update images in the DOM
+      if (imageUrls.length > 0) {
+        const allImageContainers = this.widgetElement?.querySelectorAll(
+          `#chat-message-${messageId} .chat-message-image-link-container[data-contract-id]`
+        );
+
+        allImageContainers?.forEach((containerElement, index) => {
+          if (index < imageUrls.length) {
+            const imgElement =
+              containerElement?.querySelector<HTMLImageElement>(
+                '.chat-contract-image[data-loading="true"]'
+              );
+
+            if (imgElement && imageUrls[index]) {
+              imgElement.src = imageUrls[index];
+              imgElement.style.display = '';
+              imgElement.removeAttribute('data-loading');
+            }
+          }
+        });
+      }
+    } catch (error) {
+      console.error('Error processing contract images:', error);
+      // Optionally show error state in UI
       const allImageContainers = this.widgetElement?.querySelectorAll(
         `#chat-message-${messageId} .chat-message-image-link-container[data-contract-id]`
       );
 
-      allImageContainers?.forEach((containerElement, index) => {
-        if (index < imageUrls.length) {
-          const imgElement = containerElement?.querySelector<HTMLImageElement>(
-            '.chat-contract-image[data-loading="true"]'
-          );
-
-          if (imgElement && imageUrls[index]) {
-            imgElement.src = imageUrls[index];
-            imgElement.style.display = '';
-            imgElement.removeAttribute('data-loading');
-          }
+      allImageContainers?.forEach((containerElement) => {
+        const imgElement = containerElement?.querySelector<HTMLImageElement>(
+          '.chat-contract-image[data-loading="true"]'
+        );
+        if (imgElement) {
+          imgElement.style.display = 'none';
+          imgElement.removeAttribute('data-loading');
         }
       });
     }
@@ -435,7 +454,7 @@ export class ChatWidgetCore {
         this.hideLoadingSpinner();
         const lastMessage = this.messages.at(-1);
         if (lastMessage?.text !== '') {
-          this.finalizeLastMessage();
+          this.finalizeLastMessage().catch(console.error);
         } else {
           this.messages = this.messages.slice(0, -1);
           this.widgetElement
@@ -855,7 +874,7 @@ export class ChatWidgetCore {
           });
         }
         // finalize the message
-        this.finalizeLastMessage();
+        await this.finalizeLastMessage();
       } else {
         if (!response.ok) {
           throw new Error(`API request failed with status ${response.status}`);
@@ -885,15 +904,15 @@ export class ChatWidgetCore {
     }
   }
 
-  private finalizeLastMessage() {
+  private async finalizeLastMessage() {
     const lastMessage = this.messages.at(-1);
 
     if (!lastMessage) {
       return;
     }
 
-    // Process pending contracts and update images
-    this.processContractImages(lastMessage.id);
+    // Process pending contracts and update images (now async)
+    await this.processContractImages(lastMessage.id);
 
     // update the message in the history
     const chats = this.storage.getChats();
