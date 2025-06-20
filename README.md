@@ -146,3 +146,4 @@ These are all the props you can pass to the `<DynamiqAssistant />` component.
 | -------------- | --------------------------------------------- |
 | `onFeedback`   | The callback function to handle the feedback. |
 | `onImageBlock` | The callback function to handle image blocks. |
+| `onLink` | The callback function to handle links. |
