@@ -1062,6 +1062,23 @@
   overflow: clip;
 }
 
+.chat-message-image-link-container {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.chat-message-image-link-container a {
+  line-height: 0;
+}
+
+.chat-contract-image {
+  width: 32px !important;
+  height: 32px !important;
+  object-fit: cover !important;
+  border-radius: 50% !important;
+}
+
 /* Browser supports interpolate-size */
 @supports (interpolate-size: allow-keywords) {
   :root {

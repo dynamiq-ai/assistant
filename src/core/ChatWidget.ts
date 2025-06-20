@@ -40,6 +40,7 @@ export class ChatWidgetCore {
   private params: CustomParams;
   private storage: Storage;
   private abortController: AbortController | null = null;
+  private pendingContracts: Set<string> = new Set();
 
   constructor(container: HTMLElement, options: ChatWidgetOptions = {}) {
     this.container = container;
@@ -108,17 +109,34 @@ export class ChatWidgetCore {
       }
       //Render code block images
       if (language === 'image') {
-        console.log('image', code);
+        const contractLinkIcon = UIComponents.createContractLinkIcon();
         try {
           const imageInfo = JSON.parse(code);
-          return this.options.onImageBlock?.(imageInfo) || '';
+          const contractId = crypto.randomUUID();
+
+          // Store contract info for later processing
+          this.storeContractInfo(imageInfo);
+
+          return this.options.onImageBlock || this.options.onLink
+            ? `<div class="chat-message-image-link-container" data-contract-id="${contractId}">
+        ${
+          this.options.onImageBlock
+            ? `<img src="" class="chat-contract-image" style="display: none;" data-loading="true" />`
+            : ''
+        }
+        ${
+          this.options.onLink?.(imageInfo)
+            ? `<a href="${this.options.onLink?.(
+                imageInfo
+              )}" target="_blank">${contractLinkIcon}</a>`
+            : ''
+        }
+        </div>`
+            : '';
         } catch {
           return 'Loading image...';
         }
       }
-      console.log('language', language);
-      console.log('code', code);
-      console.log('escaped', escaped);
       return originalCodeRenderer({ text: code, lang: language, escaped });
     };
 
@@ -129,7 +147,28 @@ export class ChatWidgetCore {
         try {
           const jsonData = text.slice(5).trim();
           const imageInfo = JSON.parse(jsonData);
-          return this.options.onImageBlock?.(imageInfo) || '';
+          const contractLinkIcon = UIComponents.createContractLinkIcon();
+          const contractId = crypto.randomUUID();
+
+          // Store contract info for later processing
+          this.storeContractInfo(imageInfo);
+
+          return this.options.onImageBlock || this.options.onLink
+            ? `<div class="chat-message-image-link-container" data-contract-id="${contractId}">
+          ${
+            this.options.onImageBlock
+              ? `<img src="" class="chat-contract-image" style="display: none;" data-loading="true" />`
+              : ''
+          }
+          ${
+            this.options.onLink?.(imageInfo)
+              ? `<a href="${this.options.onLink?.(
+                  imageInfo
+                )}" target="_blank">${contractLinkIcon}</a>`
+              : ''
+          }
+          </div>`
+            : '';
         } catch {
           return 'Loading image...';
         }
@@ -153,6 +192,49 @@ export class ChatWidgetCore {
     ) => string;
 
     marked.use({ renderer });
+  }
+
+  private storeContractInfo(imageInfo: { contract: string }): void {
+    this.pendingContracts.add(imageInfo.contract);
+  }
+
+  private processContractImages(messageId: string): void {
+    if (this.pendingContracts.size === 0 || !this.options.onImageBlock) {
+      return;
+    }
+
+    // Collect all contract IDs as array
+    const contractIds = Array.from(this.pendingContracts);
+
+    // Call onImageBlock with array of contract IDs
+    const result = this.options.onImageBlock(contractIds);
+
+    // Handle both single string and array of strings
+    const imageUrls = Array.isArray(result) ? result : [result];
+
+    // Update images in the DOM
+    if (imageUrls.length > 0) {
+      const allImageContainers = this.widgetElement?.querySelectorAll(
+        `#chat-message-${messageId} .chat-message-image-link-container[data-contract-id]`
+      );
+
+      allImageContainers?.forEach((containerElement, index) => {
+        if (index < imageUrls.length) {
+          const imgElement = containerElement?.querySelector<HTMLImageElement>(
+            '.chat-contract-image[data-loading="true"]'
+          );
+
+          if (imgElement && imageUrls[index]) {
+            imgElement.src = imageUrls[index];
+            imgElement.style.display = '';
+            imgElement.removeAttribute('data-loading');
+          }
+        }
+      });
+    }
+
+    // Clear pending contracts for this message
+    this.pendingContracts.clear();
   }
 
   private init(): void {
@@ -810,6 +892,9 @@ export class ChatWidgetCore {
       return;
     }
 
+    // Process pending contracts and update images
+    this.processContractImages(lastMessage.id);
+
     // update the message in the history
     const chats = this.storage.getChats();
     const chat = chats.find(
@@ -1143,6 +1228,9 @@ export class ChatWidgetCore {
 
     // Clear all messages
     this.messages.length = 0;
+
+    // Clear pending contracts
+    this.pendingContracts.clear();
 
     // Clear the messages container
     const messagesContainer = this.widgetElement?.querySelector(
