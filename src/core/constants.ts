@@ -14,5 +14,5 @@ export const CHART_ADDITIONAL_DATA = {
   ],
 };
 
-export const INPUT_V_PADDING = 24;
+export const INPUT_V_PADDING = 36;
 export const MAX_INPUT_HEIGHT = 80;
