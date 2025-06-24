@@ -6,6 +6,7 @@ import {
   HistoryChat,
   ContentTypes,
 } from './types';
+import { createParser, type EventSourceMessage } from 'eventsource-parser';
 import './styles.css';
 import {
   getRelativeTimeString,
@@ -831,48 +832,70 @@ export class ChatWidgetCore {
         const updateMessage = this.addBotMessage(message, true);
         this.hideLoadingSpinner();
 
+        // Create SSE parser with event handlers
+        const parser = createParser({
+          onEvent: (event: EventSourceMessage) => {
+            if (event.data) {
+              try {
+                if (typeof event.data !== 'string') {
+                  console.warn('Invalid event data type:', typeof event.data);
+                  return;
+                }
+
+                const parsed = JSON.parse(event.data);
+
+                // Validate the structure before accessing nested properties
+                if (!parsed || typeof parsed !== 'object') {
+                  console.warn('Invalid parsed data structure');
+                  return;
+                }
+
+                // Check for content
+                const content = parsed?.data?.choices?.[0]?.delta?.content;
+                const newStep = parsed?.data?.choices?.[0]?.delta?.step;
+
+                if (content) {
+                  if (typeof content === 'object') {
+                    this.handleIntermediateStreaming(content);
+                  } else if (typeof content === 'string') {
+                    message =
+                      message +
+                      (newStep ? (newStep !== step ? '\n\n' : '') : '') +
+                      content;
+                    if (updateMessage) {
+                      updateMessage(message);
+                    }
+                    step = newStep;
+                  }
+                }
+              } catch (error) {
+                console.error(
+                  'Failed to parse SSE event JSON:',
+                  error,
+                  'Raw data:',
+                  event.data
+                );
+              }
+            }
+          },
+          onError: (error) => {
+            console.error('SSE parsing error:', error);
+          },
+        });
+
         while (true) {
-          const { done, value } = await reader.read();
+          const { value, done } = await reader.read();
+
           if (done) {
+            // Reset controller once streaming is done
             this.abortController = null;
             break;
           }
 
-          // Each chunk might contain multiple `data:` events, so split by empty line
-          const events = value.trim().split('\n\r');
-
-          events.forEach((eventLine) => {
-            const [eventTypeLine, dataLine] = eventLine.trim().split('\r\n');
-            const eventType = eventTypeLine.trim().split(': ')[1];
-
-            if (eventType === 'data') {
-              const jsonData = dataLine.slice(5).trim(); // Remove 'data:' prefix
-
-              try {
-                const parsed = JSON.parse(jsonData);
-
-                // Check for content in the right location
-                const content = parsed?.data?.choices?.[0]?.delta?.content;
-                const newStep = parsed?.data?.choices?.[0]?.delta?.step;
-
-                if (content && typeof content === 'string') {
-                  message =
-                    message +
-                    (newStep ? (newStep !== step ? '\n\n' : '') : '') +
-                    content;
-                  if (updateMessage) {
-                    updateMessage(message);
-                  }
-                  step = newStep;
-                } else if (content && typeof content === 'object') {
-                  this.handleIntermediateStreaming(content);
-                }
-              } catch (error) {
-                console.error('Failed to parse JSON:', error);
-              }
-            }
-          });
+          // Feed the chunk to the SSE parser
+          parser.feed(value);
         }
+
         // finalize the message
         await this.finalizeLastMessage();
       } else {
