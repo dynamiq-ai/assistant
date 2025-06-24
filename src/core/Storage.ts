@@ -37,7 +37,7 @@ export class Storage {
     return (key.length + value.length) * 2;
   }
 
-  private cleanupOldData(newDataSize: number): void {
+  private cleanupOldData(): void {
     const chats = this.getChats();
     if (!chats.length) {
       return;
@@ -70,7 +70,9 @@ export class Storage {
 
     try {
       const parsedData = JSON.parse(data);
-      return parsedData.filter((chat: HistoryChat) => chat.userId === Storage.userId);
+      return parsedData.filter(
+        (chat: HistoryChat) => chat.userId === Storage.userId
+      );
     } catch (e) {
       console.error('Failed to parse chats from storage:', e);
       return [];
@@ -84,7 +86,7 @@ export class Storage {
     const newDataSize = this.getItemSize(STORAGE_KEY, newData);
 
     if (newDataSize > MAX_STORAGE_SIZE) {
-      this.cleanupOldData(newDataSize);
+      this.cleanupOldData();
     }
 
     this.storage.setItem(STORAGE_KEY, newData);
@@ -100,7 +102,7 @@ export class Storage {
       const newDataSize = this.getItemSize(STORAGE_KEY, newData);
 
       if (newDataSize > MAX_STORAGE_SIZE) {
-        this.cleanupOldData(newDataSize);
+        this.cleanupOldData();
       }
 
       this.storage.setItem(STORAGE_KEY, newData);

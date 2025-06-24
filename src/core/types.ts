@@ -5,6 +5,7 @@ export interface ChatMessage {
   timestamp: number;
   files?: File[];
   intermediateSteps?: string[];
+  processedImages?: Record<string, string>; // contractId -> imageUrl mapping
 }
 
 export interface ApiConfig {
