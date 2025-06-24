@@ -119,7 +119,9 @@ export class ChatWidgetCore {
           this.storeContractInfo(imageInfo);
 
           return this.options.onImageBlock || this.options.onLink
-            ? `<div class="chat-message-image-link-container" data-contract-id="${contractId}">
+            ? `<div class="chat-message-image-link-container" data-contract-id="${contractId}" data-contract="${
+                imageInfo.contract
+              }">
         ${
           this.options.onImageBlock
             ? `<img src="" class="chat-contract-image" style="display: none;" data-loading="true" />`
@@ -155,7 +157,9 @@ export class ChatWidgetCore {
           this.storeContractInfo(imageInfo);
 
           return this.options.onImageBlock || this.options.onLink
-            ? `<div class="chat-message-image-link-container" data-contract-id="${contractId}">
+            ? `<div class="chat-message-image-link-container" data-contract-id="${contractId}" data-contract="${
+                imageInfo.contract
+              }">
           ${
             this.options.onImageBlock
               ? `<img src="" class="chat-contract-image" style="display: none;" data-loading="true" />`
@@ -213,6 +217,20 @@ export class ChatWidgetCore {
 
       // Handle both single string and array of strings
       const imageUrls = Array.isArray(result) ? result : [result];
+
+      // Store processed images in message data
+      const lastMessage = this.messages.find((m) => m.id === messageId);
+      if (lastMessage && imageUrls.length > 0) {
+        if (!lastMessage.processedImages) {
+          lastMessage.processedImages = {};
+        }
+        // Map contract IDs to image URLs
+        contractIds.forEach((contractId, index) => {
+          if (index < imageUrls.length && imageUrls[index]) {
+            lastMessage.processedImages![contractId] = imageUrls[index];
+          }
+        });
+      }
 
       // Update images in the DOM
       if (imageUrls.length > 0) {
@@ -949,6 +967,7 @@ export class ChatWidgetCore {
             ...m,
             text: lastMessage.text,
             intermediateSteps: lastMessage.intermediateSteps,
+            processedImages: lastMessage.processedImages,
           };
         }
         return m;
@@ -1205,8 +1224,39 @@ export class ChatWidgetCore {
       contentContainer.appendChild(filesContainer);
     }
 
+    // Apply stored processed images if available
+    this.applyStoredImages(message);
+
     // Scroll to bottom
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
+  }
+
+  private applyStoredImages(message: ChatMessage): void {
+    if (
+      !message.processedImages ||
+      Object.keys(message.processedImages).length === 0
+    ) {
+      return;
+    }
+
+    // Find all image containers in this message
+    const imageContainers = this.widgetElement?.querySelectorAll(
+      `#chat-message-${message.id} .chat-message-image-link-container[data-contract]`
+    );
+
+    imageContainers?.forEach((containerElement) => {
+      const contractId = containerElement.getAttribute('data-contract');
+      if (contractId && message.processedImages![contractId]) {
+        const imgElement = containerElement.querySelector<HTMLImageElement>(
+          '.chat-contract-image'
+        );
+        if (imgElement) {
+          imgElement.src = message.processedImages![contractId];
+          imgElement.style.display = '';
+          imgElement.removeAttribute('data-loading');
+        }
+      }
+    });
   }
 
   private async renderVegaChartsInElement(
