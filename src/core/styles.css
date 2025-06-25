@@ -292,15 +292,48 @@
   justify-content: flex-start;
 }
 
+.chat-message-content-wrapper-main {
+  display: flex;
+  flex-direction: row;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.chat-message-content-main {
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.chat-message-bot .chat-message-content-wrapper-main {
+  background-color: color-mix(in srgb, var(--primary-color) 10%, transparent);
+  color: var(--text-color);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  padding: 12px 16px;
+  border-radius: 4px;
+}
+
+.chat-message-bot .chat-message-content {
+  width: 100%;
+}
+
+.chat-message-bot .chat-message-text {
+  padding: 0;
+}
+
 .chat-message-avatar {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  margin: 0 8px;
+  margin: 0 4px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+}
+
+.chat-message-avatar svg path {
+  fill: var(--primary-color);
 }
 
 .chat-message-user .chat-message-avatar {
@@ -311,9 +344,6 @@
 }
 
 .chat-message-bot .chat-message-avatar {
-  background-color: #f0f0f0;
-  color: var(--text-color);
-  margin-right: 8px;
   margin-left: 0;
 }
 
@@ -340,11 +370,11 @@
   color: var(--text-color);
 }
 
-.chat-message-bot .chat-message-text {
+/* .chat-message-bot .chat-message-text {
   background-color: color-mix(in srgb, var(--primary-color) 10%, transparent);
   color: var(--text-color);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-}
+} */
 
 .chat-message-timestamp {
   font-size: 11px;
@@ -655,7 +685,8 @@
   min-height: 20px;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
+  margin-top: 6px;
 
   & ~ .chat-message-feedback {
     display: none;
@@ -833,6 +864,7 @@
   width: 100%;
   margin-bottom: 0.75em;
   word-break: normal;
+  border-radius: 4px;
 }
 
 .chat-message-markdown table th {
@@ -998,7 +1030,7 @@
 }
 
 .chat-message-intermediate-steps {
-  margin: 12px 0;
+  margin-bottom: 12px;
   border-radius: 4px;
   background-color: color-mix(in srgb, var(--primary-color) 5%, transparent);
   border: 1px solid color-mix(in srgb, var(--primary-color) 10%, transparent);
