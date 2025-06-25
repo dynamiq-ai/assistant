@@ -370,12 +370,6 @@
   color: var(--text-color);
 }
 
-/* .chat-message-bot .chat-message-text {
-  background-color: color-mix(in srgb, var(--primary-color) 10%, transparent);
-  color: var(--text-color);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-} */
-
 .chat-message-timestamp {
   font-size: 11px;
   color: #999;
