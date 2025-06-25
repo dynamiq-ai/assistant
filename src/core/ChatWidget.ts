@@ -1019,7 +1019,7 @@ export class ChatWidgetCore {
             lastMessage.intermediateSteps
           );
           message
-            .querySelector('.chat-message-content')
+            .querySelector('.chat-message-content-main')
             ?.prepend(intermediateStepsContainer);
           intermediateStepsContainer.open = true;
         }
@@ -1131,12 +1131,17 @@ export class ChatWidgetCore {
 
     if (message.sender === 'bot') {
       avatar.innerHTML =
-        '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"></rect><circle cx="12" cy="5" r="2"></circle><path d="M12 7v4"></path><line x1="8" y1="16" x2="8" y2="16"></line><line x1="16" y1="16" x2="16" y2="16"></line></svg>';
+        '<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M19.3751 11.875C19.3751 12.0408 19.3093 12.1997 19.192 12.3169C19.0748 12.4342 18.9159 12.5 18.7501 12.5H17.5001V13.75C17.5001 13.9158 17.4343 14.0747 17.317 14.1919C17.1998 14.3092 17.0409 14.375 16.8751 14.375C16.7093 14.375 16.5504 14.3092 16.4332 14.1919C16.316 14.0747 16.2501 13.9158 16.2501 13.75V12.5H15.0001C14.8343 12.5 14.6754 12.4342 14.5582 12.3169C14.441 12.1997 14.3751 12.0408 14.3751 11.875C14.3751 11.7092 14.441 11.5503 14.5582 11.4331C14.6754 11.3158 14.8343 11.25 15.0001 11.25H16.2501V10C16.2501 9.83424 16.316 9.67527 16.4332 9.55806C16.5504 9.44085 16.7093 9.375 16.8751 9.375C17.0409 9.375 17.1998 9.44085 17.317 9.55806C17.4343 9.67527 17.5001 9.83424 17.5001 10V11.25H18.7501C18.9159 11.25 19.0748 11.3158 19.192 11.4331C19.3093 11.5503 19.3751 11.7092 19.3751 11.875ZM4.3751 5.625H5.6251V6.875C5.6251 7.04076 5.69095 7.19973 5.80816 7.31694C5.92537 7.43415 6.08434 7.5 6.2501 7.5C6.41586 7.5 6.57484 7.43415 6.69205 7.31694C6.80926 7.19973 6.8751 7.04076 6.8751 6.875V5.625H8.1251C8.29086 5.625 8.44984 5.55915 8.56705 5.44194C8.68426 5.32473 8.7501 5.16576 8.7501 5C8.7501 4.83424 8.68426 4.67527 8.56705 4.55806C8.44984 4.44085 8.29086 4.375 8.1251 4.375H6.8751V3.125C6.8751 2.95924 6.80926 2.80027 6.69205 2.68306C6.57484 2.56585 6.41586 2.5 6.2501 2.5C6.08434 2.5 5.92537 2.56585 5.80816 2.68306C5.69095 2.80027 5.6251 2.95924 5.6251 3.125V4.375H4.3751C4.20934 4.375 4.05037 4.44085 3.93316 4.55806C3.81595 4.67527 3.7501 4.83424 3.7501 5C3.7501 5.16576 3.81595 5.32473 3.93316 5.44194C4.05037 5.55915 4.20934 5.625 4.3751 5.625ZM14.3751 15H13.7501V14.375C13.7501 14.2092 13.6843 14.0503 13.567 13.9331C13.4498 13.8158 13.2909 13.75 13.1251 13.75C12.9593 13.75 12.8004 13.8158 12.6832 13.9331C12.566 14.0503 12.5001 14.2092 12.5001 14.375V15H11.8751C11.7093 15 11.5504 15.0658 11.4332 15.1831C11.316 15.3003 11.2501 15.4592 11.2501 15.625C11.2501 15.7908 11.316 15.9497 11.4332 16.0669C11.5504 16.1842 11.7093 16.25 11.8751 16.25H12.5001V16.875C12.5001 17.0408 12.566 17.1997 12.6832 17.3169C12.8004 17.4342 12.9593 17.5 13.1251 17.5C13.2909 17.5 13.4498 17.4342 13.567 17.3169C13.6843 17.1997 13.7501 17.0408 13.7501 16.875V16.25H14.3751C14.5409 16.25 14.6998 16.1842 14.817 16.0669C14.9343 15.9497 15.0001 15.7908 15.0001 15.625C15.0001 15.4592 14.9343 15.3003 14.817 15.1831C14.6998 15.0658 14.5409 15 14.3751 15ZM17.1337 6.25L6.2501 17.1336C6.01571 17.3678 5.69789 17.4994 5.36651 17.4994C5.03513 17.4994 4.71731 17.3678 4.48292 17.1336L2.86573 15.518C2.74963 15.4019 2.65753 15.2641 2.59469 15.1124C2.53185 14.9607 2.49951 14.7982 2.49951 14.634C2.49951 14.4698 2.53185 14.3072 2.59469 14.1556C2.65753 14.0039 2.74963 13.8661 2.86573 13.75L13.7501 2.86641C13.8662 2.7503 14.004 2.6582 14.1557 2.59537C14.3073 2.53253 14.4699 2.50019 14.6341 2.50019C14.7983 2.50019 14.9608 2.53253 15.1125 2.59537C15.2642 2.6582 15.402 2.7503 15.5181 2.86641L17.1337 4.48203C17.2498 4.59811 17.3419 4.73592 17.4047 4.8876C17.4676 5.03927 17.4999 5.20184 17.4999 5.36602C17.4999 5.53019 17.4676 5.69276 17.4047 5.84444C17.3419 5.99611 17.2498 6.13392 17.1337 6.25ZM16.2501 5.36641L14.6337 3.75L12.1337 6.25L13.7501 7.86641L16.2501 5.36641Z" fill="#783F8E"/></svg>';
     }
 
     // Create message content container
     const contentContainer = document.createElement('div');
     contentContainer.className = 'chat-message-content';
+
+    const mainMessageContentWrapper = document.createElement('div');
+    mainMessageContentWrapper.className = 'chat-message-content-wrapper-main';
+    const mainMessageContent = document.createElement('div');
+    mainMessageContent.className = 'chat-message-content-main';
 
     const intermediateStepsContainer = message.intermediateSteps
       ? UIComponents.createIntermediateSteps(message.intermediateSteps)
@@ -1187,9 +1192,11 @@ export class ChatWidgetCore {
 
     // Assemble the message
     if (this.options.intermediateStreaming && intermediateStepsContainer) {
-      contentContainer.appendChild(intermediateStepsContainer);
+      mainMessageContent.appendChild(intermediateStepsContainer);
     }
-    contentContainer.appendChild(textElement);
+    mainMessageContent.appendChild(textElement);
+    mainMessageContentWrapper.appendChild(mainMessageContent);
+    contentContainer.appendChild(mainMessageContentWrapper);
     contentContainer.appendChild(timestamp);
 
     // Add feedback buttons for bot messages
@@ -1204,7 +1211,7 @@ export class ChatWidgetCore {
     if (message.sender === 'user') {
       messageElement.appendChild(contentContainer);
     } else {
-      messageElement.appendChild(avatar);
+      mainMessageContentWrapper.prepend(avatar);
       messageElement.appendChild(contentContainer);
     }
 
