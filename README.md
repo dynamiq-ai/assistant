@@ -1,24 +1,78 @@
-# Dynamiq Assistant
+<div align="center">
+  <img src="https://raw.githubusercontent.com/dynamiq-ai/assistant/main/assets/github-chat-widget-header.png" alt="Dynamiq Assistant" width="600" />
+  
+  <h1>Dynamiq Assistant</h1>
+  
+  <p>
+    <strong>A powerful chat widget library for AI agents - Built for React and vanilla JavaScript</strong>
+  </p>
+  
+  <p>
+    <a href="https://www.npmjs.com/package/@dynamiq/assistant"><img src="https://img.shields.io/npm/v/@dynamiq/assistant?style=flat-square&logo=npm" alt="npm version" /></a>
+    <a href="https://www.npmjs.com/package/@dynamiq/assistant"><img src="https://img.shields.io/npm/dm/@dynamiq/assistant?style=flat-square&logo=npm" alt="npm downloads" /></a>
+    <a href="https://github.com/dynamiq-ai/assistant/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-Apache%202.0-blue?style=flat-square" alt="License" /></a>
+  </p>
+  
+  <p>
+    <a href="https://docs.getdynamiq.ai/">Documentation</a> •
+    <a href="#features">Features</a> •
+    <a href="#installation">Installation</a> •
+    <a href="#usage">Usage</a> •
+    <a href="#contributing">Contributing</a>
+  </p>
 
-**dynamiq-assistant** allows you to export and use Dynamiq interfaces as React and vanilla JavaScript components.
+  <p>
+    <a href="https://getdynamiq.ai"><img src="https://img.shields.io/badge/🌐_Website-getdynamiq.ai-0066cc?style=for-the-badge" alt="Website" /></a>
+    <a href="https://www.linkedin.com/company/dynamiq-ai"><img src="https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn" /></a>
+    <a href="https://x.com/Dynamiq_AI"><img src="https://img.shields.io/badge/Twitter-1DA1F2?style=for-the-badge&logo=twitter&logoColor=white" alt="Twitter" /></a>
+  </p>
+</div>
 
-✨ [Dynamiq](https://www.getdynamiq.ai/) is an orchestration framework for agentic AI and LLM applications.
+---
 
-[Twitter](https://x.com/Dynamiq_AI) | [Documentation](https://docs.getdynamiq.ai/)
+## ✨ About
 
-## Install
+**dynamiq-assistant** allows you to seamlessly integrate AI agents into your applications through customizable chat widgets. Built specifically for agentic AI experiences, it provides React and vanilla JavaScript components that connect directly to your Dynamiq-powered AI agents.
+
+[Dynamiq](https://www.getdynamiq.ai/) is an orchestration framework for agentic AI and LLM applications, enabling businesses to build, deploy, and manage intelligent AI agents at scale.
+
+## 🚀 Features
+
+- 🤖 **AI Agent Integration** - Purpose-built for connecting to Dynamiq AI agents
+- 📱 **Cross-Platform Support** - Works with React and vanilla JavaScript
+- 🎨 **Customizable UI** - Fully customizable appearance with theme support
+- 📡 **Streaming Support** - Real-time streaming responses from AI agents
+- 📁 **File Upload** - Enable AI agents to process images, PDFs, and documents
+- 🎯 **Flexible Positioning** - Position the agent widget anywhere on your page
+- 🔧 **Event Handlers** - Handle agent feedback, actions, and responses
+- 📊 **Vega Chart Support** - AI agents can render data visualizations seamlessly
+
+## 📦 Installation
 
 ```bash
 npm install @dynamiq/assistant marked@15 vega@5.33.0 vega-lite@5.23.0 vega-embed@6.29.0
 ```
 
-## Usage
+Or using yarn:
 
-To use `@dynamiq/assistant`, first you have to go to the Deployments, make sure you have disabled `Endpoint Authorization`. Then click on the `Integration` tab and switch to `Chat Widget` menu item. It will show different options to embed the assistant.
+```bash
+yarn add @dynamiq/assistant marked@15 vega@5.33.0 vega-lite@5.23.0 vega-embed@6.29.0
+```
 
-<img width="1496" alt="image" src="https://raw.githubusercontent.com/dynamiq-ai/assistant/refs/heads/main/assets/dynamiq-app.png">
+## 🔧 Setup
 
-You can copy the URL and pass it to the configuration for DynamiqAssistant:
+To use `@dynamiq/assistant`, first navigate to your Dynamiq deployment:
+
+1. Go to **Deployments** and ensure **Endpoint Authorization** is disabled
+2. Click on the **Integration** tab
+3. Switch to the **Chat Widget** menu item
+4. Copy your unique API URL
+
+<div align="center">
+  <img src="https://raw.githubusercontent.com/dynamiq-ai/assistant/main/assets/chat-integration.png" alt="Dynamiq App Integration" width="800" />
+</div>
+
+## 💻 Usage
 
 ### React
 
@@ -59,9 +113,9 @@ const App = () => {
 };
 ```
 
-### Browser
+### Vanilla JavaScript
 
-#### ESM
+#### ESM Module
 
 ```js
 import { DynamiqAssistant } from '@dynamiq/assistant/vanilla';
@@ -104,17 +158,21 @@ const assistant = new DynamiqAssistant('#dynamiq-assistant-container', {
 </script>
 ```
 
-You should be able to see the assistant embedded in your app
+## 🎨 Widget Preview
 
-<img height="525" alt="image" src="https://raw.githubusercontent.com/dynamiq-ai/assistant/refs/heads/main/assets/widget-preview.png">
+Your assistant will appear as an elegant chat widget on your page:
 
-## Props
+<div align="center">
+  <img src="https://raw.githubusercontent.com/dynamiq-ai/assistant/main/assets/chat-visual.png" alt="Widget Preview" height="525" />
+</div>
 
-These are all the props you can pass to the `<DynamiqAssistant />` component.
+## 📚 API Reference
+
+### Props
 
 | Name                    | Type                  | Description                                                                                      |
 | ----------------------- | --------------------- | ------------------------------------------------------------------------------------------------ |
-| `title`                 | `string \| ReactNode` | The title of the assistant. Can be string or ReactNode.                                          |
+| `title`                 | `string \| ReactNode` | The title of the assistant. Can be string or ReactNode.                                         |
 | `placeholder`           | `string`              | The placeholder text of the chat input.                                                          |
 | `welcomeTitle`          | `string`              | The title of the welcome screen.                                                                 |
 | `welcomeSubtitle`       | `string`              | The subtitle of the welcome screen.                                                              |
@@ -140,10 +198,64 @@ These are all the props you can pass to the `<DynamiqAssistant />` component.
 | `humanSupport`          | `string`              | The text to show in the human support section.                                                   |
 | `intermediateStreaming` | `boolean`             | Whether to show the intermediate steps if they are available. By default `true`.                 |
 
-## Events
+### Events
 
 | Name           | Description                                   |
 | -------------- | --------------------------------------------- |
 | `onFeedback`   | The callback function to handle the feedback. |
 | `onImageBlock` | The callback function to handle image blocks. |
-| `onLink` | The callback function to handle links. |
+| `onLink`       | The callback function to handle links.        |
+
+## 🤝 Contributing
+
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details on how to get started.
+
+### Development
+
+```bash
+# Install dependencies
+npm install
+
+# Run development server
+npm run dev
+
+# Build the library
+npm run build
+
+# Run tests
+npm run test
+
+# Lint code
+npm run lint
+```
+
+## 📄 License
+
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
+
+## 🔗 Links
+
+- [GitHub Repository](https://github.com/dynamiq-ai/assistant)
+- [NPM Package](https://www.npmjs.com/package/@dynamiq/assistant)
+- [Documentation](https://docs.getdynamiq.ai/)
+- [Dynamiq Platform](https://www.getdynamiq.ai/)
+- [Report Issues](https://github.com/dynamiq-ai/assistant/issues)
+
+## 🌐 Connect with Us
+
+<div align="center">
+  <p>
+    <strong>Dynamiq</strong> is the operating platform for agentic AI applications. We're building the future of AI orchestration.
+  </p>
+  
+  <p>
+    <a href="https://getdynamiq.ai"><img src="https://img.shields.io/badge/🌐_Website-getdynamiq.ai-0066cc?style=for-the-badge" alt="Website" /></a>
+    <a href="https://www.linkedin.com/company/dynamiq-ai"><img src="https://img.shields.io/badge/LinkedIn-Connect-0077B5?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn" /></a>
+    <a href="https://x.com/Dynamiq_AI"><img src="https://img.shields.io/badge/Twitter-Follow-1DA1F2?style=for-the-badge&logo=twitter&logoColor=white" alt="Twitter" /></a>
+  </p>
+  
+  <p>
+    <a href="https://github.com/dynamiq-ai"><img src="https://img.shields.io/badge/GitHub-dynamiq--ai-181717?style=flat-square&logo=github" alt="GitHub Organization" /></a>
+  </p>
+</div>
+
