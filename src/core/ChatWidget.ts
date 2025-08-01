@@ -678,6 +678,11 @@ export class ChatWidgetCore {
       return;
     }
 
+    // Prevent sending messages while streaming is active
+    if (this.abortController) {
+      return;
+    }
+
     const message: ChatMessage = {
       id: Date.now().toString(),
       text: text.trim(),
@@ -841,6 +846,9 @@ export class ChatWidgetCore {
       });
 
       if (this.apiConfig.streaming) {
+        if (!response.ok) {
+          throw new Error(`API request failed with status ${response.status}`);
+        }
         const reader = (response.body as ReadableStream)
           .pipeThrough(new TextDecoderStream())
           .getReader();
@@ -933,10 +941,11 @@ export class ChatWidgetCore {
         this.abortController = null;
       }
     } catch (error) {
-      console.log('Error sending message to API:', error);
+      console.error('Error sending message to API:', error);
       if (this.abortController?.signal.aborted) {
         this.abortController = null;
       } else {
+        this.abortController = null;
         // Add an error message to the chat
         this.addBotMessage(
           'Sorry, there was an error processing your message. Please try again later.'
