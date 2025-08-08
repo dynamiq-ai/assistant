@@ -851,6 +851,7 @@
   max-width: 100%;
   height: auto;
   border-radius: 4px;
+  display: inline-block;
 }
 
 .chat-message-markdown table {
@@ -876,6 +877,7 @@
 .chat-message-markdown table tr {
   background-color: #fff;
   border-top: 1px solid #eeeff1;
+  position: relative;
 }
 
 .chat-widget-panel {
@@ -1144,6 +1146,12 @@
   height: 32px !important;
   object-fit: cover !important;
   border-radius: 50% !important;
+  position: absolute;
+  left: 10px;
+}
+
+.chat-message-markdown table tr:has(.chat-contract-image) td:first-child {
+  padding-left: 50px;
 }
 
 /* Browser supports interpolate-size */
