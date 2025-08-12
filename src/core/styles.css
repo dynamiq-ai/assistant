@@ -956,14 +956,15 @@
 
 .chat-widget-history-chat {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 18px 20px;
-  border-radius: 4px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 12px;
+  border-radius: 6px;
   background: #fcfcfd;
   cursor: pointer;
   margin-bottom: 10px;
-  transition: background 0.15s;
+  transition: background 0.15s, color 0.15s;
   font-family: var(--font-family);
   box-shadow: none;
   color: var(--text-color);
@@ -976,12 +977,30 @@
 }
 
 .chat-widget-history-chat-title {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 500;
-  margin-bottom: 2px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.chat-widget-history-chat-delete {
+  appearance: none;
+  background: transparent;
+  border: none;
+  color: #9aa0a6;
+  padding: 6px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.chat-widget-history-chat:hover .chat-widget-history-chat-delete,
+.chat-widget-history-chat.active .chat-widget-history-chat-delete {
+  color: var(--primary-color);
+}
+
+.chat-widget-history-chat-delete:hover {
+  background: rgba(0, 0, 0, 0.04);
 }
 
 .chat-widget-history-chat-timestamp {
@@ -1152,6 +1171,19 @@
 
 .chat-message-markdown table tr:has(.chat-contract-image) td:first-child {
   padding-left: 50px;
+}
+
+.chat-message-flag-container {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.chat-message-flag-container img {
+  width: 16px;
+  height: 16px;
+  object-fit: cover;
+  border-radius: 50%;
 }
 
 /* Browser supports interpolate-size */

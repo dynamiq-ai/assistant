@@ -72,7 +72,10 @@ export class ChatWidgetCore {
     Storage.userId = this.params.userId;
     this.apiConfig = this.options.api;
     this.selectedFiles = [];
-    this.historyPanel = new HistoryPanel(this.loadChatHistory.bind(this));
+    this.historyPanel = new HistoryPanel(
+      this.loadChatHistory.bind(this),
+      this.handleChatDeleted.bind(this)
+    );
 
     this.setupMarkedRenderer();
     this.init();
@@ -176,6 +179,19 @@ export class ChatWidgetCore {
             : '';
         } catch {
           return 'Loading image...';
+        }
+      }
+      if (text.startsWith('flag')) {
+        try {
+          const jsonData = text.slice(4).trim();
+          const flagInfo = JSON.parse(jsonData);
+          const { code, country } = flagInfo;
+          return `<div class="chat-message-flag-container">
+          <img src="https://public-assets-rp.s3.eu-central-1.amazonaws.com/flags/${code.toLowerCase()}.svg" alt="${country}" />
+          <span>${country}</span>
+          </div>`;
+        } catch {
+          return '';
         }
       }
       return originalCodespanRenderer(token);
@@ -1435,6 +1451,13 @@ export class ChatWidgetCore {
   public updateParams(params: ChatWidgetOptions['params']) {
     this.params = { ...this.params, ...params };
     Storage.userId = this.params.userId;
+  }
+
+  private handleChatDeleted(deletedSessionId: string) {
+    // If the currently loaded chat was deleted, reset the main panel
+    if (this.params.sessionId === deletedSessionId) {
+      this.startNewChat();
+    }
   }
 
   private async loadChatHistory(sessionId: string) {
