@@ -102,5 +102,6 @@ export function processMessageText(text: string) {
       .join('\n')
       // Remove double newlines artifacts
       .replaceAll('\\n\\n', '\n')
+      .replaceAll('Photo/Documents', '')
   );
 }
