@@ -79,6 +79,12 @@ export class ChatWidgetCore {
 
     this.setupMarkedRenderer();
     this.init();
+    if (this.options.fullScreen) {
+      this.toggleFullScreen();
+    }
+    if (this.options.open) {
+      this.open();
+    }
   }
 
   private setupMarkedRenderer(): void {
@@ -916,6 +922,13 @@ export class ChatWidgetCore {
                   error,
                   'Raw data:',
                   event.data
+                );
+              }
+            }
+            if (event.event === 'streaming' && !message) {
+              if (updateMessage) {
+                updateMessage(
+                  'Sorry, there was an error processing your message. Please try again later.'
                 );
               }
             }

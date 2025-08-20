@@ -40,6 +40,9 @@ export interface ChatWidgetOptions {
   acceptedFileTypes?: string; // MIME types or extensions
   toggleButton?: string; // id of the button to toggle the chat widget
   allowFullScreen?: boolean;
+  fullScreen?: boolean;
+  open?: boolean;
+  hideCloseButton?: boolean;
   api?: ApiConfig;
   params?: {
     userId?: string;

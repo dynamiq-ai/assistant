@@ -172,7 +172,7 @@ Your assistant will appear as an elegant chat widget on your page:
 
 | Name                    | Type                  | Description                                                                                      |
 | ----------------------- | --------------------- | ------------------------------------------------------------------------------------------------ |
-| `title`                 | `string \| ReactNode` | The title of the assistant. Can be string or ReactNode.                                         |
+| `title`                 | `string \| ReactNode` | The title of the assistant. Can be string or ReactNode.                                          |
 | `placeholder`           | `string`              | The placeholder text of the chat input.                                                          |
 | `welcomeTitle`          | `string`              | The title of the welcome screen.                                                                 |
 | `welcomeSubtitle`       | `string`              | The subtitle of the welcome screen.                                                              |
@@ -197,6 +197,9 @@ Your assistant will appear as an elegant chat widget on your page:
 | `poweredBy`             | `string`              | The text to show in the powered by section.                                                      |
 | `humanSupport`          | `string`              | The text to show in the human support section.                                                   |
 | `intermediateStreaming` | `boolean`             | Whether to show the intermediate steps if they are available. By default `true`.                 |
+| `hideCloseButton`       | `boolean`             | Whether to hide close button. By default `false`.                                                |
+| `fullScreen`            | `boolean`             | Whether to open chat in full screen. By default `false`.                                         |
+| `open`                  | `boolean`             | Whether to open chat on page load. By default `false`.                                           |
 
 ### Events
 
@@ -258,4 +261,3 @@ This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENS
     <a href="https://github.com/dynamiq-ai"><img src="https://img.shields.io/badge/GitHub-dynamiq--ai-181717?style=flat-square&logo=github" alt="GitHub Organization" /></a>
   </p>
 </div>
-
