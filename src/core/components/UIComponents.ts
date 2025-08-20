@@ -71,7 +71,9 @@ export class UIComponents {
     if (options.allowFullScreen) {
       headerActions.appendChild(fullScreenButton);
     }
-    headerActions.appendChild(closeButton);
+    if (!options.hideCloseButton) {
+      headerActions.appendChild(closeButton);
+    }
 
     header.appendChild(title);
     header.appendChild(headerActions);
