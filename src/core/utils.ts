@@ -74,6 +74,17 @@ export const updateChartCode = (initialCode: any, primaryColor: string) => {
     ...initialCode,
     width: 'container',
     mark: updatedMark,
+    ...(!!initialCode?.encoding && {
+      encoding: {
+        ...initialCode.encoding,
+        ...(!!initialCode.encoding?.color && {
+          color: {
+            ...initialCode.encoding.color,
+            value: primaryColor,
+          },
+        }),
+      },
+    }),
   };
 };
 
