@@ -74,7 +74,8 @@ export class ChatWidgetCore {
     this.selectedFiles = [];
     this.historyPanel = new HistoryPanel(
       this.loadChatHistory.bind(this),
-      this.handleChatDeleted.bind(this)
+      this.handleChatDeleted.bind(this),
+      () => !!this.abortController
     );
 
     this.setupMarkedRenderer();
@@ -822,6 +823,7 @@ export class ChatWidgetCore {
       return;
     }
     this.abortController = new AbortController();
+    this.historyPanel.updateDisabledState();
 
     try {
       // Create FormData for the request
@@ -944,6 +946,7 @@ export class ChatWidgetCore {
           if (done) {
             // Reset controller once streaming is done
             this.abortController = null;
+            this.historyPanel.updateDisabledState();
             break;
           }
 
@@ -968,13 +971,16 @@ export class ChatWidgetCore {
           );
         }
         this.abortController = null;
+        this.historyPanel.updateDisabledState();
       }
     } catch (error) {
       console.error('Error sending message to API:', error);
       if (this.abortController?.signal.aborted) {
         this.abortController = null;
+        this.historyPanel.updateDisabledState();
       } else {
         this.abortController = null;
+        this.historyPanel.updateDisabledState();
         // Add an error message to the chat
         this.addBotMessage(
           'Sorry, there was an error processing your message. Please try again later.'
