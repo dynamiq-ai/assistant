@@ -42,6 +42,18 @@ export class ChatWidgetCore {
   private storage: Storage;
   private abortController: AbortController | null = null;
   private pendingContracts: Set<string> = new Set();
+  private progressMessageInterval: NodeJS.Timeout | null = null;
+  private progressMessages: string[] = [
+    'Sharpening my virtual pencil…',
+    'Crunching the numbers…',
+    'Exploring the knowledge galaxy…',
+    'Fishing for insights…',
+    'Stitching together the story…',
+    'Cooking up an answer…',
+    'Connecting the dots…',
+    'Tracking down the last clue…',
+    'Almost there…',
+  ];
 
   constructor(container: HTMLElement, options: ChatWidgetOptions = {}) {
     this.container = container;
@@ -494,6 +506,7 @@ export class ChatWidgetCore {
       abortButton.addEventListener('click', () => {
         this.abortController?.abort();
         this.hideLoadingSpinner();
+        this.stopProgressMessageRotation();
         const lastMessage = this.messages.at(-1);
         if (lastMessage?.text !== '') {
           this.finalizeLastMessage().catch(console.error);
@@ -1107,6 +1120,12 @@ export class ChatWidgetCore {
     );
     const textElement = message?.querySelector('.chat-message-text');
     if (textElement) {
+      // Stop progress message rotation when content arrives
+      if (textElement.classList.contains('chat-message-loading')) {
+        this.stopProgressMessageRotation();
+        textElement.classList.remove('chat-message-loading');
+      }
+
       // Parse markdown for bot messages if markdown is enabled
       if (message?.classList.contains('chat-message-bot')) {
         const rawHtml = await marked(text);
@@ -1209,7 +1228,17 @@ export class ChatWidgetCore {
         dotsContainer.appendChild(dot);
       }
 
+      // Add progress message
+      const progressMessage = document.createElement('div');
+      progressMessage.className = 'chat-message-progress';
+      progressMessage.textContent = this.progressMessages[0];
+
+      dotsContainer.appendChild(progressMessage);
+
       textElement.appendChild(dotsContainer);
+
+      // Start progress message rotation
+      this.startProgressMessageRotation(message.id);
     } else {
       // Parse markdown if the message is from the bot and markdown is enabled
       if (message.sender === 'bot') {
@@ -1357,6 +1386,29 @@ export class ChatWidgetCore {
     }
   }
 
+  private startProgressMessageRotation(messageId: string): void {
+    let currentIndex = 0;
+
+    this.progressMessageInterval = setInterval(() => {
+      currentIndex = (currentIndex + 1) % this.progressMessages.length;
+
+      const messageElement = this.widgetElement?.querySelector(
+        `#chat-message-${messageId} .chat-message-progress`
+      );
+
+      if (messageElement) {
+        messageElement.textContent = this.progressMessages[currentIndex];
+      }
+    }, 10000); // Change message every 10 seconds
+  }
+
+  private stopProgressMessageRotation(): void {
+    if (this.progressMessageInterval) {
+      clearInterval(this.progressMessageInterval);
+      this.progressMessageInterval = null;
+    }
+  }
+
   public destroy(): void {
     if (this.widgetElement && this.container.contains(this.widgetElement)) {
       this.container.removeChild(this.widgetElement);
@@ -1364,6 +1416,7 @@ export class ChatWidgetCore {
     if (this.relativeTimeInterval) {
       clearInterval(this.relativeTimeInterval);
     }
+    this.stopProgressMessageRotation();
   }
 
   public startNewChat(): void {
@@ -1374,6 +1427,9 @@ export class ChatWidgetCore {
 
     // Clear pending contracts
     this.pendingContracts.clear();
+
+    // Stop any ongoing progress message rotation
+    this.stopProgressMessageRotation();
 
     // Clear the messages container
     const messagesContainer = this.widgetElement?.querySelector(
