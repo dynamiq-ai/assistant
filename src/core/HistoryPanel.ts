@@ -5,18 +5,21 @@ class HistoryPanel {
   private readonly chats: HistoryChat[] = [];
   private readonly onChatItemClick: (sessionId: string) => void;
   private readonly onChatItemDelete?: (sessionId: string) => void;
+  private readonly isStreamingActive: () => boolean;
   private chatsContainer: HTMLDivElement;
   private readonly storage: Storage;
   private activeChat: HistoryChat | null = null;
 
   constructor(
     onChatItemClick: (sessionId: string) => void,
-    onChatItemDelete?: (sessionId: string) => void
+    onChatItemDelete?: (sessionId: string) => void,
+    isStreamingActive?: () => boolean
   ) {
     this.storage = Storage.getInstance();
     this.chats = this.storage.getChats();
     this.onChatItemClick = onChatItemClick;
     this.onChatItemDelete = onChatItemDelete;
+    this.isStreamingActive = isStreamingActive || (() => false);
   }
 
   render() {
@@ -129,6 +132,37 @@ class HistoryPanel {
     }
   }
 
+  updateDisabledState() {
+    const isDisabled = this.isStreamingActive();
+    const chatItems = this.chatsContainer.querySelectorAll(
+      '.chat-widget-history-chat'
+    );
+
+    chatItems.forEach((chatItem) => {
+      const deleteBtn = chatItem.querySelector(
+        '.chat-widget-history-chat-delete'
+      ) as HTMLElement;
+
+      if (isDisabled) {
+        chatItem.classList.add('disabled');
+        (chatItem as HTMLElement).style.pointerEvents = 'none';
+        (chatItem as HTMLElement).style.opacity = '0.5';
+        if (deleteBtn) {
+          deleteBtn.style.pointerEvents = 'none';
+          deleteBtn.style.opacity = '0.5';
+        }
+      } else {
+        chatItem.classList.remove('disabled');
+        (chatItem as HTMLElement).style.pointerEvents = '';
+        (chatItem as HTMLElement).style.opacity = '';
+        if (deleteBtn) {
+          deleteBtn.style.pointerEvents = '';
+          deleteBtn.style.opacity = '';
+        }
+      }
+    });
+  }
+
   setActiveChat(chat: HistoryChat) {
     this.activeChat = chat;
     this.chatsContainer
@@ -149,6 +183,14 @@ class HistoryPanel {
     chatItem.className = 'chat-widget-history-chat';
     chatItem.setAttribute('data-session-id', chat.sessionId);
 
+    // Check if streaming is active to disable the chat item
+    const isDisabled = this.isStreamingActive();
+    if (isDisabled) {
+      chatItem.classList.add('disabled');
+      chatItem.style.pointerEvents = 'none';
+      chatItem.style.opacity = '0.5';
+    }
+
     // Title only (no timestamp since it's grouped by date)
     const title = document.createElement('div');
     title.className = 'chat-widget-history-chat-title';
@@ -161,15 +203,23 @@ class HistoryPanel {
     deleteBtn.title = 'Delete chat';
     deleteBtn.innerHTML =
       '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path></svg>';
-    deleteBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      this.deleteChat(chat.sessionId);
-    });
+
+    if (!isDisabled) {
+      deleteBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.deleteChat(chat.sessionId);
+      });
+    } else {
+      deleteBtn.style.pointerEvents = 'none';
+      deleteBtn.style.opacity = '0.5';
+    }
     chatItem.appendChild(deleteBtn);
 
-    chatItem.addEventListener('click', () =>
-      this.onChatItemClick(chat.sessionId)
-    );
+    if (!isDisabled) {
+      chatItem.addEventListener('click', () =>
+        this.onChatItemClick(chat.sessionId)
+      );
+    }
     return chatItem;
   }
 
