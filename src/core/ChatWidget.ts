@@ -476,10 +476,32 @@ export class ChatWidgetCore {
         }
         const assistantMessage = this.messages.at(assistantMessageIndex)!;
         const userMessage = this.messages.at(assistantMessageIndex - 1)!;
+        const feedback = target.dataset.feedback as 'positive' | 'negative';
+
+        // Store feedback in message
+        assistantMessage.feedback = feedback;
+
+        // Update button appearance
+        this.updateFeedbackButtons(target.dataset.messageId!, feedback);
+
+        // Update storage
+        const chats = this.storage.getChats();
+        const chat = chats.find(
+          (h: HistoryChat) => h.sessionId === this.params.sessionId
+        );
+        if (chat) {
+          const messageIndex = chat.messages.findIndex(
+            (m) => m.id === assistantMessage.id
+          );
+          if (messageIndex !== -1) {
+            chat.messages[messageIndex] = assistantMessage;
+            this.storage.updateChat(chat);
+          }
+        }
 
         this.options.onFeedback?.(
           e,
-          target.dataset.feedback as 'positive' | 'negative',
+          feedback,
           [userMessage, assistantMessage],
           this.params
         );
@@ -1277,7 +1299,10 @@ export class ChatWidgetCore {
       typeof this.options.onFeedback === 'function' &&
       message.sender === 'bot'
     ) {
-      const feedbackContainer = UIComponents.createFeedbackButtons(message.id);
+      const feedbackContainer = UIComponents.createFeedbackButtons(
+        message.id,
+        message.feedback
+      );
       contentContainer.appendChild(feedbackContainer);
     }
 
@@ -1569,5 +1594,28 @@ export class ChatWidgetCore {
     } else {
       this.widgetElement?.classList.remove('chat-widget-generating');
     }
+  }
+
+  private updateFeedbackButtons(
+    messageId: string,
+    feedback: 'positive' | 'negative'
+  ): void {
+    if (!this.widgetElement) return;
+
+    // Find all feedback buttons for this message
+    const feedbackButtons = this.widgetElement.querySelectorAll(
+      `[data-message-id="${messageId}"].chat-message-feedback-button`
+    );
+
+    feedbackButtons.forEach((button) => {
+      const btn = button as HTMLElement;
+      // Remove any existing selected state
+      btn.classList.remove('feedback-selected');
+
+      // Add selected state to the clicked button
+      if (btn.dataset.feedback === feedback) {
+        btn.classList.add('feedback-selected');
+      }
+    });
   }
 }
