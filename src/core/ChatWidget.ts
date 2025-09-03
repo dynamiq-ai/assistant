@@ -106,6 +106,12 @@ export class ChatWidgetCore {
     const originalCodespanRenderer = renderer.codespan.bind(renderer);
     const originalTableImpl = Renderer.prototype.table;
 
+    renderer.link = ({ href, title, text }) => {
+      return `<a href="${href}"${
+        title ? ` title="${title}"` : ''
+      } target="_blank">${text}</a>`;
+    };
+
     renderer.code = ({ text: code, lang: language, escaped }) => {
       //Render Vega charts
       if (language === 'chart') {
