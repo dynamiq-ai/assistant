@@ -77,12 +77,13 @@ export const updateChartCode = (initialCode: any, primaryColor: string) => {
     ...(!!initialCode?.encoding && {
       encoding: {
         ...initialCode.encoding,
-        ...(!!initialCode.encoding?.color && {
-          color: {
-            ...initialCode.encoding.color,
-            value: primaryColor,
-          },
-        }),
+        ...(!!initialCode.encoding?.color &&
+          'value' in initialCode.encoding.color && {
+            color: {
+              ...initialCode.encoding.color,
+              value: primaryColor,
+            },
+          }),
       },
     }),
   };
