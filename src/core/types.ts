@@ -6,6 +6,7 @@ export interface ChatMessage {
   files?: File[];
   intermediateSteps?: string[];
   processedImages?: Record<string, string>; // contractId -> imageUrl mapping
+  feedback?: 'positive' | 'negative';
 }
 
 export interface ApiConfig {
