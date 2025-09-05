@@ -5,12 +5,14 @@ import {
   CustomParams,
   HistoryChat,
   ContentTypes,
+  ReportPerson,
 } from './types';
 import { createParser, type EventSourceMessage } from 'eventsource-parser';
 import './styles.css';
 import {
   getRelativeTimeString,
   processMessageText,
+  renderImageAndLink,
   resizeInput,
   updateChartCode,
 } from './utils';
@@ -113,6 +115,61 @@ export class ChatWidgetCore {
     };
 
     renderer.code = ({ text: code, lang: language, escaped }) => {
+      // Render organization report
+      if (language === 'report') {
+        try {
+          const reportInfo: ReportPerson = JSON.parse(code);
+          const managerName = reportInfo?.name || '';
+          const managerRole = reportInfo?.role || '';
+          const managerContractId = reportInfo?.contractId || '';
+          const directReports: ReportPerson[] = Array.isArray(
+            reportInfo?.directReports
+          )
+            ? (reportInfo.directReports as ReportPerson[])
+            : [];
+          const managerContractInfo = { contract: managerContractId };
+
+          this.storeContractInfo(managerContractInfo);
+
+          const managerCard = `<div class="chat-message-report-card chat-message-report-card-manager" data-contract-id="${managerContractId}">
+            <div class="chat-message-report-text">
+              <div class="chat-message-report-name">${managerName}</div>
+              <div class="chat-message-report-role">${managerRole}</div>
+            </div>
+            ${renderImageAndLink(this.options, managerContractInfo)}
+          </div>`;
+
+          const reportsCards = directReports
+            .map((rep: ReportPerson) => {
+              const repName = rep?.name || '';
+              const repRole = rep?.role || '';
+              const repContractId = rep?.contractId || '';
+              const repContractInfo = { contract: repContractId };
+
+              this.storeContractInfo(repContractInfo);
+
+              return `<div class="chat-message-report-card" data-contract-id="${repContractId}">
+                <svg class="chat-message-children-report-arrow" width="27" height="104" viewBox="0 0 27 104" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M26.3536 99.6464C26.5488 99.8417 26.5488 100.158 26.3536 100.354L23.1716 103.536C22.9763 103.731 22.6597 103.731 22.4645 103.536C22.2692 103.34 22.2692 103.024 22.4645 102.828L25.2929 100L22.4645 97.1716C22.2692 96.9763 22.2692 96.6597 22.4645 96.4645C22.6597 96.2692 22.9763 96.2692 23.1716 96.4645L26.3536 99.6464ZM1 0H1.5V96H1H0.5V0H1ZM5 100V99.5H26V100V100.5H5V100ZM1 96H1.5C1.5 97.933 3.067 99.5 5 99.5V100V100.5C2.51472 100.5 0.5 98.4853 0.5 96H1Z" fill="#783F8E"/>
+                </svg>
+                <div class="chat-message-report-text">
+                  <div class="chat-message-report-name">${repName}</div>
+                  <div class="chat-message-report-role">${repRole}</div>
+                </div>
+                ${renderImageAndLink(this.options, repContractInfo)}
+              </div>`;
+            })
+            .join('');
+
+          const childrenBlock = directReports.length
+            ? `<div class="chat-message-report-children">${reportsCards}</div>`
+            : '';
+
+          return `<div class="chat-message-report-container">${managerCard}${childrenBlock}</div>`;
+        } catch {
+          return 'Building report...';
+        }
+      }
       //Render Vega charts
       if (language === 'chart') {
         try {
@@ -138,32 +195,13 @@ export class ChatWidgetCore {
       }
       //Render code block images
       if (language === 'image') {
-        const contractLinkIcon = UIComponents.createContractLinkIcon();
         try {
           const imageInfo = JSON.parse(code);
-          const contractId = crypto.randomUUID();
 
           // Store contract info for later processing
           this.storeContractInfo(imageInfo);
 
-          return this.options.onImageBlock || this.options.onLink
-            ? `<div class="chat-message-image-link-container" data-contract-id="${contractId}" data-contract="${
-                imageInfo.contract
-              }">
-        ${
-          this.options.onImageBlock
-            ? `<img src="" class="chat-contract-image" style="display: none;" data-loading="true" />`
-            : ''
-        }
-        ${
-          this.options.onLink?.(imageInfo)
-            ? `<a href="${this.options.onLink?.(
-                imageInfo
-              )}" target="_blank">${contractLinkIcon}</a>`
-            : ''
-        }
-        </div>`
-            : '';
+          return renderImageAndLink(this.options, imageInfo);
         } catch {
           return 'Loading image...';
         }
@@ -290,6 +328,8 @@ export class ChatWidgetCore {
               imgElement.src = imageUrls[index];
               imgElement.style.display = '';
               imgElement.removeAttribute('data-loading');
+              console.log('imgElement', imgElement);
+              imgElement.classList.add('chat-contract-image-loaded');
             }
           }
         });
@@ -1365,6 +1405,7 @@ export class ChatWidgetCore {
           imgElement.src = message.processedImages![contractId];
           imgElement.style.display = '';
           imgElement.removeAttribute('data-loading');
+          imgElement.classList.add('chat-contract-image-loaded');
         }
       }
     });

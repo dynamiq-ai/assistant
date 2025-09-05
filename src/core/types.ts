@@ -84,3 +84,10 @@ export interface ContentTypes {
   name?: string;
   [key: string]: unknown;
 }
+
+export type ReportPerson = {
+  name?: string;
+  role?: string;
+  contractId?: string;
+  directReports?: ReportPerson[];
+};
