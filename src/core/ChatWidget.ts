@@ -1115,10 +1115,6 @@ export class ChatWidgetCore {
     if (content.thought) {
       const lastMessage = this.messages.at(-1);
       if (lastMessage) {
-        lastMessage.intermediateSteps = [
-          ...(lastMessage.intermediateSteps ?? []),
-          content.thought,
-        ];
         const message = this.widgetElement?.querySelector(
           `#chat-message-${lastMessage.id}`
         );
@@ -1131,20 +1127,60 @@ export class ChatWidgetCore {
           message.querySelector<HTMLDetailsElement>(
             '.chat-message-intermediate-steps'
           );
-        if (intermediateStepsContainer) {
-          intermediateStepsContainer.appendChild(
-            UIComponents.createIntermediateStep(content.thought)
-          );
-          intermediateStepsContainer.open = true;
-        } else {
-          intermediateStepsContainer = UIComponents.createIntermediateSteps(
-            lastMessage.intermediateSteps
-          );
-          message
-            .querySelector('.chat-message-content-main')
-            ?.prepend(intermediateStepsContainer);
-          intermediateStepsContainer.open = true;
+
+        // Initialize intermediateSteps as an array of IntermediateStep objects
+        if (!lastMessage.intermediateSteps) {
+          lastMessage.intermediateSteps = [];
         }
+
+        // Find the last step with the same loop_num or create a new one
+        const currentLoopNum = content.loop_num ?? 0;
+        const lastStepIndex = lastMessage.intermediateSteps.length - 1;
+        const lastStep =
+          lastStepIndex >= 0
+            ? lastMessage.intermediateSteps[lastStepIndex]
+            : null;
+
+        if (lastStep && lastStep.loop_num === currentLoopNum) {
+          // Append to existing step
+          lastStep.thought += content.thought;
+
+          // Update the existing DOM element
+          if (intermediateStepsContainer) {
+            const stepElements = intermediateStepsContainer.querySelectorAll(
+              '.chat-message-intermediate-step'
+            );
+            const lastStepElement = stepElements[
+              stepElements.length - 1
+            ] as HTMLDivElement;
+            if (lastStepElement) {
+              lastStepElement.textContent = lastStep.thought;
+            }
+          }
+        } else {
+          // Create new step
+          const newStep = {
+            thought: content.thought,
+            loop_num: currentLoopNum,
+          };
+          lastMessage.intermediateSteps.push(newStep);
+
+          if (intermediateStepsContainer) {
+            intermediateStepsContainer.appendChild(
+              UIComponents.createIntermediateStep(content.thought)
+            );
+            intermediateStepsContainer.open = true;
+          } else {
+            intermediateStepsContainer = UIComponents.createIntermediateSteps(
+              lastMessage.intermediateSteps
+            );
+            message
+              .querySelector('.chat-message-content-main')
+              ?.prepend(intermediateStepsContainer);
+            intermediateStepsContainer.open = true;
+          }
+        }
+
         const messagesContainer = this.widgetElement?.querySelector(
           '.chat-widget-messages'
         );
