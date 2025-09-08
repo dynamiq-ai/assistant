@@ -1,4 +1,4 @@
-import { ChatWidgetOptions } from '../types';
+import { ChatWidgetOptions, IntermediateStep } from '../types';
 
 export class UIComponents {
   static createWidget(options: ChatWidgetOptions): HTMLElement {
@@ -200,7 +200,9 @@ export class UIComponents {
     return humanSupportContainer;
   }
 
-  static createIntermediateSteps(steps: string[]): HTMLDetailsElement {
+  static createIntermediateSteps(
+    steps: IntermediateStep[] | string[]
+  ): HTMLDetailsElement {
     const intermediateStepsContainer = document.createElement('details');
     intermediateStepsContainer.className = 'chat-message-intermediate-steps';
 
@@ -208,7 +210,13 @@ export class UIComponents {
       const summary = document.createElement('summary');
       intermediateStepsContainer.appendChild(summary);
       steps.forEach((step) => {
-        const stepElement = UIComponents.createIntermediateStep(step);
+        let stepText;
+        if (typeof step === 'string') {
+          stepText = step;
+        } else {
+          stepText = step.thought;
+        }
+        const stepElement = UIComponents.createIntermediateStep(stepText);
         intermediateStepsContainer.appendChild(stepElement);
       });
     }

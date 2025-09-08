@@ -1,10 +1,15 @@
+export interface IntermediateStep {
+  thought: string;
+  loop_num: number;
+}
+
 export interface ChatMessage {
   id: string;
   text: string;
   sender: 'user' | 'bot';
   timestamp: number;
   files?: File[];
-  intermediateSteps?: string[];
+  intermediateSteps?: IntermediateStep[];
   processedImages?: Record<string, string>; // contractId -> imageUrl mapping
   feedback?: 'positive' | 'negative';
 }
@@ -78,6 +83,7 @@ export interface HistoryChat {
 export interface ContentTypes {
   analysis?: string;
   thought?: string;
+  loop_num?: number;
   tool?: {
     id: string;
     name: string;
