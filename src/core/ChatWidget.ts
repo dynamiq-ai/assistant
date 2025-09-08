@@ -198,6 +198,10 @@ export class ChatWidgetCore {
         try {
           const imageInfo = JSON.parse(code);
 
+          if (imageInfo?.contract === 'N/A') {
+            return '';
+          }
+
           // Store contract info for later processing
           this.storeContractInfo(imageInfo);
 
@@ -216,30 +220,15 @@ export class ChatWidgetCore {
         try {
           const jsonData = text.slice(5).trim();
           const imageInfo = JSON.parse(jsonData);
-          const contractLinkIcon = UIComponents.createContractLinkIcon();
-          const contractId = crypto.randomUUID();
+
+          if (imageInfo?.contract === 'N/A') {
+            return '';
+          }
 
           // Store contract info for later processing
           this.storeContractInfo(imageInfo);
 
-          return this.options.onImageBlock || this.options.onLink
-            ? `<div class="chat-message-image-link-container" data-contract-id="${contractId}" data-contract="${
-                imageInfo.contract
-              }">
-          ${
-            this.options.onImageBlock
-              ? `<img src="" class="chat-contract-image" style="display: none;" data-loading="true" />`
-              : ''
-          }
-          ${
-            this.options.onLink?.(imageInfo)
-              ? `<a href="${this.options.onLink?.(
-                  imageInfo
-                )}" target="_blank">${contractLinkIcon}</a>`
-              : ''
-          }
-          </div>`
-            : '';
+          return renderImageAndLink(this.options, imageInfo);
         } catch {
           return 'Loading image...';
         }
@@ -249,6 +238,11 @@ export class ChatWidgetCore {
           const jsonData = text.slice(4).trim();
           const flagInfo = JSON.parse(jsonData);
           const { code, country } = flagInfo;
+
+          if (flagInfo?.code === 'XX') {
+            return 'N/A';
+          }
+
           return `<div class="chat-message-flag-container">
           <img src="https://public-assets-rp.s3.eu-central-1.amazonaws.com/flags/${code.toLowerCase()}.svg" alt="${country}" />
           <span>${country}</span>
@@ -328,7 +322,6 @@ export class ChatWidgetCore {
               imgElement.src = imageUrls[index];
               imgElement.style.display = '';
               imgElement.removeAttribute('data-loading');
-              console.log('imgElement', imgElement);
               imgElement.classList.add('chat-contract-image-loaded');
             }
           }
@@ -524,6 +517,9 @@ export class ChatWidgetCore {
         const userMessage = this.messages.at(assistantMessageIndex - 1)!;
         const feedback = target.dataset.feedback as 'positive' | 'negative';
 
+        // Capture previous feedback state before updating
+        const prevFeedbackState = assistantMessage.feedback || null;
+
         // Store feedback in message
         assistantMessage.feedback = feedback;
 
@@ -549,7 +545,8 @@ export class ChatWidgetCore {
           e,
           feedback,
           [userMessage, assistantMessage],
-          this.params
+          this.params,
+          prevFeedbackState
         );
       });
     }
@@ -1659,9 +1656,12 @@ export class ChatWidgetCore {
       // Remove any existing selected state
       btn.classList.remove('feedback-selected');
 
-      // Add selected state to the clicked button
+      // Add selected state to the clicked button and hide the other one
       if (btn.dataset.feedback === feedback) {
         btn.classList.add('feedback-selected');
+      } else {
+        // Hide the other feedback button
+        btn.style.display = 'none';
       }
     });
   }

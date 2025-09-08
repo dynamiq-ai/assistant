@@ -60,7 +60,8 @@ export interface ChatWidgetOptions {
     event: Event,
     feedback: 'positive' | 'negative',
     messages: ChatMessage[],
-    params: CustomParams
+    params: CustomParams,
+    prevFeedbackState: 'positive' | 'negative' | null
   ) => void;
   onImageBlock?: (imageInfo: string[]) => Promise<string[]>;
   onLink?: (linkInfo: Record<string, string>) => string;
