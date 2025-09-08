@@ -256,6 +256,13 @@ export class UIComponents {
     thumbsDown.dataset.feedback = 'negative';
     thumbsDown.dataset.messageId = messageId;
 
+    // Hide the non-selected button if feedback already exists
+    if (selectedFeedback === 'positive') {
+      thumbsDown.style.display = 'none';
+    } else if (selectedFeedback === 'negative') {
+      thumbsUp.style.display = 'none';
+    }
+
     feedbackContainer.appendChild(thumbsUp);
     feedbackContainer.appendChild(thumbsDown);
 
