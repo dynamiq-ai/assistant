@@ -1,4 +1,6 @@
+import { UIComponents } from './components/UIComponents';
 import { CHART_ADDITIONAL_DATA } from './constants';
+import { ChatWidgetOptions } from './types';
 
 /**
  * Convert a date to a relative time string, such as
@@ -117,3 +119,29 @@ export function processMessageText(text: string) {
       .replaceAll('Photo/Documents', '')
   );
 }
+
+export const renderImageAndLink = (
+  options: ChatWidgetOptions,
+  imageInfo: { contract: string }
+) => {
+  const contractId = crypto.randomUUID();
+  const contractLinkIcon = UIComponents.createContractLinkIcon();
+  return options.onImageBlock || options.onLink
+    ? `<div class="chat-message-image-link-container" data-contract-id="${contractId}" data-contract="${
+        imageInfo.contract
+      }">
+        ${
+          options.onImageBlock
+            ? `<img src="" class="chat-contract-image" style="display: none;" data-loading="true" />`
+            : ''
+        }
+        ${
+          options.onLink?.(imageInfo)
+            ? `<a href="${options.onLink?.(
+                imageInfo
+              )}" target="_blank">${contractLinkIcon}</a>`
+            : ''
+        }
+        </div>`
+    : '';
+};
