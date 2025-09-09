@@ -812,8 +812,13 @@
   padding-left: 1.5em;
 }
 
+.chat-message-markdown ul {
+  list-style-type: '- ';
+}
+
 .chat-message-markdown li {
   margin-bottom: 0.25em;
+  display: list-item;
 }
 
 .chat-message-markdown code {
