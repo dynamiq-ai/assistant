@@ -3,7 +3,8 @@ export const CHART_ADDITIONAL_DATA = {
   width: 'container',
   height: 'container',
   mark: {
-    cornerRadius: 5,
+    cornerRadiusTopLeft: 5,
+    cornerRadiusTopRight: 5,
     tooltip: true,
   },
   params: [
