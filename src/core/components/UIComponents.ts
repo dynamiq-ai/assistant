@@ -5,6 +5,8 @@ export class UIComponents {
     const widget = document.createElement('div');
     widget.className = `chat-widget chat-widget-${options.position}`;
 
+    const scrollbarWidth = window.innerWidth - document.body.clientWidth;
+
     // Set custom CSS variables for theming
     if (options.theme) {
       widget.style.setProperty(
@@ -19,6 +21,7 @@ export class UIComponents {
         '--font-family',
         options.theme.fontFamily || 'Inter, sans-serif'
       );
+      widget.style.setProperty('--scrollbar-width', scrollbarWidth + 'px');
     }
 
     return widget;
@@ -33,9 +36,11 @@ export class UIComponents {
     return toggleButton;
   }
 
-  static createChatContainer(): HTMLDivElement {
+  static createChatContainer(options: ChatWidgetOptions): HTMLDivElement {
     const chatContainer = document.createElement('div');
-    chatContainer.className = 'chat-widget-container';
+    chatContainer.className = options.toggleButton
+      ? 'chat-widget-container chat-widget-container-toggle-button'
+      : 'chat-widget-container';
     chatContainer.style.display = 'none';
     return chatContainer;
   }

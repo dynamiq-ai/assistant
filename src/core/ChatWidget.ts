@@ -384,7 +384,7 @@ export class ChatWidgetCore {
       : UIComponents.createToggleButton();
 
     // Create the chat container
-    const chatContainer = UIComponents.createChatContainer();
+    const chatContainer = UIComponents.createChatContainer(this.options);
 
     // Create the chat header
     const header = UIComponents.createHeader(this.options);
