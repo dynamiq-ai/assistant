@@ -59,7 +59,7 @@
 .chat-widget-container {
   position: absolute;
   bottom: -20px;
-  width: 100vw;
+  width: calc(100vw - var(--scrollbar-width));
   height: 100vh;
   background-color: white;
   border-radius: 16px;
@@ -75,6 +75,9 @@
     bottom: 70px;
     width: 400px;
     height: 600px;
+  }
+  .chat-widget-container-toggle-button {
+    bottom: -5px;
   }
 }
 
