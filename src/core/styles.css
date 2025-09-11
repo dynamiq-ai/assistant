@@ -184,6 +184,16 @@
   margin-right: 6px;
 }
 
+.chat-widget-new-chat:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  color: #999;
+}
+
+.chat-widget-new-chat:disabled:hover {
+  background-color: transparent;
+}
+
 .chat-widget-close {
   background: none;
   border: none;

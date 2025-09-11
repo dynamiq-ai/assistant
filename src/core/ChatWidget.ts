@@ -629,6 +629,8 @@ export class ChatWidgetCore {
     );
     if (newChatButton) {
       newChatButton.addEventListener('click', () => this.startNewChat());
+      // Set initial disabled state
+      this.updateNewChatButtonState();
     }
   }
 
@@ -902,6 +904,7 @@ export class ChatWidgetCore {
     }
     this.abortController = new AbortController();
     this.historyPanel.updateDisabledState();
+    this.updateNewChatButtonState();
 
     try {
       // Create FormData for the request
@@ -1025,6 +1028,7 @@ export class ChatWidgetCore {
             // Reset controller once streaming is done
             this.abortController = null;
             this.historyPanel.updateDisabledState();
+            this.updateNewChatButtonState();
             break;
           }
 
@@ -1050,15 +1054,18 @@ export class ChatWidgetCore {
         }
         this.abortController = null;
         this.historyPanel.updateDisabledState();
+        this.updateNewChatButtonState();
       }
     } catch (error) {
       console.error('Error sending message to API:', error);
       if (this.abortController?.signal.aborted) {
         this.abortController = null;
         this.historyPanel.updateDisabledState();
+        this.updateNewChatButtonState();
       } else {
         this.abortController = null;
         this.historyPanel.updateDisabledState();
+        this.updateNewChatButtonState();
         // Add an error message to the chat
         this.addBotMessage(
           'Sorry, there was an error processing your message. Please try again later.'
@@ -1700,5 +1707,14 @@ export class ChatWidgetCore {
         btn.style.display = 'none';
       }
     });
+  }
+
+  private updateNewChatButtonState(): void {
+    const newChatButton = this.widgetElement?.querySelector<HTMLButtonElement>(
+      '.chat-widget-new-chat'
+    );
+    if (newChatButton) {
+      newChatButton.disabled = !!this.abortController;
+    }
   }
 }
