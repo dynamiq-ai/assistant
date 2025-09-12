@@ -538,6 +538,8 @@ export class ChatWidgetCore {
           if (messageIndex !== -1) {
             chat.messages[messageIndex] = assistantMessage;
             this.storage.updateChat(chat);
+            // Update the history panel's local state to keep UI in sync
+            this.historyPanel.updateChatInLocalState(chat);
           }
         }
 
@@ -744,6 +746,9 @@ export class ChatWidgetCore {
       chatContainer.style.display = 'flex';
       this.isOpen = true;
 
+      // Refresh history panel from storage to ensure it's up to date
+      this.historyPanel.refreshFromStorage();
+
       // Change the toggle button icon to a cross
       if (toggleButton) {
         toggleButton.innerHTML =
@@ -792,6 +797,7 @@ export class ChatWidgetCore {
       sender: 'user',
       timestamp: Date.now(),
       files: [...this.selectedFiles], // Include any selected files
+      isComplete: true, // User messages are always complete when created
     };
 
     this.hideWelcomeScreen();
@@ -1081,6 +1087,9 @@ export class ChatWidgetCore {
       return;
     }
 
+    // Mark the message as complete
+    lastMessage.isComplete = true;
+
     // Process pending contracts and update images (now async)
     await this.processContractImages(lastMessage.id);
 
@@ -1097,11 +1106,22 @@ export class ChatWidgetCore {
             text: lastMessage.text,
             intermediateSteps: lastMessage.intermediateSteps,
             processedImages: lastMessage.processedImages,
+            isComplete: true, // Ensure it's marked as complete in storage too
           };
         }
         return m;
       });
       this.storage.updateChat(chat);
+      // Update the history panel's local state to keep UI in sync
+      this.historyPanel.updateChatInLocalState(chat);
+    }
+
+    // Add feedback buttons now that the message is complete
+    if (
+      typeof this.options.onFeedback === 'function' &&
+      lastMessage.sender === 'bot'
+    ) {
+      this.addFeedbackButtonsToMessage(lastMessage.id, lastMessage.feedback);
     }
 
     // hide the intermediate steps container
@@ -1208,6 +1228,7 @@ export class ChatWidgetCore {
       text,
       sender: 'bot',
       timestamp: Date.now(),
+      isComplete: !streaming, // Complete if not streaming, incomplete if streaming
     };
 
     this.addMessage(botMessage);
@@ -1277,6 +1298,8 @@ export class ChatWidgetCore {
         chat.messages.push(message);
         chat.updatedAt = Date.now();
         this.storage.updateChat(chat);
+        // Update the history panel's local state to keep UI in sync
+        this.historyPanel.updateChatInLocalState(chat);
       }
     }
 
@@ -1380,10 +1403,11 @@ export class ChatWidgetCore {
     contentContainer.appendChild(mainMessageContentWrapper);
     contentContainer.appendChild(timestamp);
 
-    // Add feedback buttons for bot messages
+    // Add feedback buttons for bot messages only after they are complete
     if (
       typeof this.options.onFeedback === 'function' &&
-      message.sender === 'bot'
+      message.sender === 'bot' &&
+      message.isComplete
     ) {
       const feedbackContainer = UIComponents.createFeedbackButtons(
         message.id,
@@ -1647,11 +1671,9 @@ export class ChatWidgetCore {
     }
   }
 
-  private async loadChatHistory(sessionId: string, updatedAt: number) {
+  private async loadChatHistory(sessionId: string) {
     const chats = this.storage.getChats();
-    const chat = chats.find(
-      (h: HistoryChat) => h.sessionId === sessionId && h.updatedAt === updatedAt
-    );
+    const chat = chats.find((h: HistoryChat) => h.sessionId === sessionId);
     if (chat) {
       this.historyPanel.setActiveChat(chat);
       this.hideWelcomeScreen();
@@ -1668,6 +1690,10 @@ export class ChatWidgetCore {
       for (const message of this.messages) {
         // skip empty messages since they are meaningless
         if (message.text) {
+          // Ensure historical messages are marked as complete
+          if (message.isComplete === undefined) {
+            message.isComplete = true;
+          }
           await this.renderMessage(message);
         }
       }
@@ -1718,5 +1744,39 @@ export class ChatWidgetCore {
     if (newChatButton) {
       newChatButton.disabled = !!this.abortController;
     }
+  }
+
+  private addFeedbackButtonsToMessage(
+    messageId: string,
+    selectedFeedback?: 'positive' | 'negative'
+  ): void {
+    const messageElement = this.widgetElement?.querySelector(
+      `#chat-message-${messageId}`
+    );
+    if (!messageElement) {
+      return;
+    }
+
+    const contentContainer = messageElement.querySelector(
+      '.chat-message-content'
+    );
+    if (!contentContainer) {
+      return;
+    }
+
+    // Check if feedback buttons already exist
+    const existingFeedback = contentContainer.querySelector(
+      '.chat-message-feedback'
+    );
+    if (existingFeedback) {
+      return;
+    }
+
+    // Create and add feedback buttons
+    const feedbackContainer = UIComponents.createFeedbackButtons(
+      messageId,
+      selectedFeedback
+    );
+    contentContainer.appendChild(feedbackContainer);
   }
 }

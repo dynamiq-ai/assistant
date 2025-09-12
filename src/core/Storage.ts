@@ -38,19 +38,26 @@ export class Storage {
   }
 
   private cleanupOldData(): void {
-    const chats = this.getChats();
-    if (!chats.length) {
+    const userChats = this.getChats();
+    const allChats = this.getAllChats();
+
+    if (!userChats.length) {
       return;
     }
-    // Sort chats by updatedAt in ascending order (oldest first)
-    chats.sort((a, b) => a.updatedAt - b.updatedAt);
+
+    // Sort user chats by updatedAt in ascending order (oldest first)
+    const sortedUserChats = [...userChats].sort(
+      (a, b) => a.updatedAt - b.updatedAt
+    );
 
     let currentSize = this.getStorageSize();
 
-    // Remove oldest chats until we have enough space
-    while (currentSize > MAX_STORAGE_SIZE && chats.length > 0) {
-      const removedChat = chats.shift();
+    // Remove oldest user chats until we have enough space
+    const chatsToRemove = new Set<string>();
+    while (currentSize > MAX_STORAGE_SIZE && sortedUserChats.length > 0) {
+      const removedChat = sortedUserChats.shift();
       if (removedChat) {
+        chatsToRemove.add(removedChat.sessionId);
         const removedSize = this.getItemSize(
           STORAGE_KEY,
           JSON.stringify([removedChat])
@@ -58,31 +65,38 @@ export class Storage {
         currentSize -= removedSize;
       }
     }
-    // Save the remaining chats
-    this.storage.setItem(STORAGE_KEY, JSON.stringify(chats));
+
+    // Filter out removed chats from all chats and save
+    const remainingChats = allChats.filter(
+      (chat) => !chatsToRemove.has(chat.sessionId)
+    );
+    this.storage.setItem(STORAGE_KEY, JSON.stringify(remainingChats));
   }
 
-  public getChats(): HistoryChat[] {
+  private getAllChats(): HistoryChat[] {
     const data = this.storage.getItem(STORAGE_KEY);
     if (!data) {
       return [];
     }
 
     try {
-      const parsedData = JSON.parse(data);
-      return parsedData.filter(
-        (chat: HistoryChat) => chat.userId === Storage.userId
-      );
+      return JSON.parse(data);
     } catch (e) {
       console.error('Failed to parse chats from storage:', e);
       return [];
     }
   }
 
+  public getChats(): HistoryChat[] {
+    return this.getAllChats().filter(
+      (chat: HistoryChat) => chat.userId === Storage.userId
+    );
+  }
+
   public addChat(chat: HistoryChat): void {
-    const chats = this.getChats();
-    const newChats = [chat, ...chats];
-    const newData = JSON.stringify(newChats);
+    const allChats = this.getAllChats();
+    const newAllChats = [chat, ...allChats];
+    const newData = JSON.stringify(newAllChats);
     const newDataSize = this.getItemSize(STORAGE_KEY, newData);
 
     if (newDataSize > MAX_STORAGE_SIZE) {
@@ -93,14 +107,12 @@ export class Storage {
   }
 
   public updateChat(chat: HistoryChat): void {
-    const chats = this.getChats();
-    const index = chats.findIndex(
-      (c) => c.sessionId === chat.sessionId && c.updatedAt === chat.updatedAt
-    );
+    const allChats = this.getAllChats();
+    const index = allChats.findIndex((c) => c.sessionId === chat.sessionId);
 
     if (index !== -1) {
-      chats[index] = chat;
-      const newData = JSON.stringify(chats);
+      allChats[index] = chat;
+      const newData = JSON.stringify(allChats);
       const newDataSize = this.getItemSize(STORAGE_KEY, newData);
 
       if (newDataSize > MAX_STORAGE_SIZE) {
@@ -111,16 +123,11 @@ export class Storage {
     }
   }
 
-  public removeChat(sessionId: string, updatedAt?: number): void {
-    const chats = this.getChats();
-    const filteredChats = chats.filter((chat) => {
-      if (updatedAt !== undefined) {
-        return !(chat.sessionId === sessionId && chat.updatedAt === updatedAt);
-      } else {
-        // Backward compatibility: remove all chats with matching sessionId
-        return chat.sessionId !== sessionId;
-      }
-    });
+  public removeChat(sessionId: string): void {
+    const allChats = this.getAllChats();
+    const filteredChats = allChats.filter(
+      (chat) => chat.sessionId !== sessionId
+    );
     this.storage.setItem(STORAGE_KEY, JSON.stringify(filteredChats));
   }
 
