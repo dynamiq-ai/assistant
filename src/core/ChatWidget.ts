@@ -523,6 +523,29 @@ export class ChatWidgetCore {
         // Store feedback in message
         assistantMessage.feedback = feedback;
 
+        // Create feedback container with random ID under the message
+        const containerId = `feedback-container-${Date.now()}-${Math.random()
+          .toString(36)
+          .substring(2)}`;
+        const messageElement = this.widgetElement?.querySelector(
+          `#chat-message-${target.dataset.messageId}`
+        );
+        if (messageElement) {
+          // Check if feedback container already exists
+          let feedbackContainer = messageElement.querySelector(
+            '.feedback-container'
+          );
+          if (!feedbackContainer) {
+            feedbackContainer = document.createElement('div');
+            feedbackContainer.className = 'feedback-container';
+            feedbackContainer.id = containerId;
+            messageElement.appendChild(feedbackContainer);
+          } else {
+            // Update existing container ID
+            feedbackContainer.id = containerId;
+          }
+        }
+
         // Update button appearance
         this.updateFeedbackButtons(target.dataset.messageId!, feedback);
 
@@ -548,7 +571,8 @@ export class ChatWidgetCore {
           feedback,
           [userMessage, assistantMessage],
           this.params,
-          prevFeedbackState
+          prevFeedbackState,
+          containerId
         );
       });
     }
@@ -824,6 +848,9 @@ export class ChatWidgetCore {
         this.toggleGeneratingState(false);
       });
     }
+
+    // Call onPromptSend callback if provided
+    this.options.onPromptSend?.(text, this.params);
   }
 
   private showWelcomeScreen(): void {
@@ -1588,6 +1615,9 @@ export class ChatWidgetCore {
     if (input) {
       input.value = '';
     }
+
+    // Call onNewChat callback if provided
+    this.options.onNewChat?.(this.params);
   }
 
   private renderFileAttachment(file: File) {
@@ -1665,6 +1695,9 @@ export class ChatWidgetCore {
   }
 
   private handleChatDeleted(deletedSessionId: string) {
+    // Call onChatDelete callback if provided
+    this.options.onChatDelete?.(deletedSessionId, this.params);
+
     // If the currently loaded chat was deleted, reset the main panel
     if (this.params.sessionId === deletedSessionId) {
       this.startNewChat();
@@ -1730,6 +1763,13 @@ export class ChatWidgetCore {
       // Add selected state to the clicked button and hide the other one
       if (btn.dataset.feedback === feedback) {
         btn.classList.add('feedback-selected');
+
+        // Update icon to filled variant when selected
+        if (feedback === 'positive') {
+          btn.innerHTML = UIComponents.getThumbsUpIcon(true);
+        } else if (feedback === 'negative') {
+          btn.innerHTML = UIComponents.getThumbsDownIcon(true);
+        }
       } else {
         // Hide the other feedback button
         btn.style.display = 'none';

@@ -67,8 +67,12 @@ export interface ChatWidgetOptions {
     feedback: 'positive' | 'negative',
     messages: ChatMessage[],
     params: CustomParams,
-    prevFeedbackState: 'positive' | 'negative' | null
+    prevFeedbackState: 'positive' | 'negative' | null,
+    containerId: string
   ) => void;
+  onNewChat?: (params: CustomParams) => void;
+  onPromptSend?: (prompt: string, params: CustomParams) => void;
+  onChatDelete?: (deletedSessionId: string, params: CustomParams) => void;
   onImageBlock?: (imageInfo: string[]) => Promise<string[]>;
   onLink?: (linkInfo: Record<string, string>) => string;
 }

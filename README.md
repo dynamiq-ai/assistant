@@ -203,11 +203,14 @@ Your assistant will appear as an elegant chat widget on your page:
 
 ### Events
 
-| Name           | Description                                   |
-| -------------- | --------------------------------------------- |
-| `onFeedback`   | The callback function to handle the feedback. |
-| `onImageBlock` | The callback function to handle image blocks. |
-| `onLink`       | The callback function to handle links.        |
+| Name           | Description                                     |
+| -------------- | ----------------------------------------------- |
+| `onFeedback`   | The callback function to handle the feedback.   |
+| `onImageBlock` | The callback function to handle image blocks.   |
+| `onLink`       | The callback function to handle links.          |
+| `onNewChat`    | The callback function to handle new chat.       |
+| `onPromptSend` | The callback function to handle prompt sending. |
+| `onChatDelete` | The callback function to handle chat deletion   |
 
 ## 🤝 Contributing
 
