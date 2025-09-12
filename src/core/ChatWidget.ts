@@ -1647,9 +1647,11 @@ export class ChatWidgetCore {
     }
   }
 
-  private async loadChatHistory(sessionId: string) {
+  private async loadChatHistory(sessionId: string, updatedAt: number) {
     const chats = this.storage.getChats();
-    const chat = chats.find((h: HistoryChat) => h.sessionId === sessionId);
+    const chat = chats.find(
+      (h: HistoryChat) => h.sessionId === sessionId && h.updatedAt === updatedAt
+    );
     if (chat) {
       this.historyPanel.setActiveChat(chat);
       this.hideWelcomeScreen();
