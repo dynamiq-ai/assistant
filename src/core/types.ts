@@ -12,6 +12,7 @@ export interface ChatMessage {
   intermediateSteps?: IntermediateStep[];
   processedImages?: Record<string, string>; // contractId -> imageUrl mapping
   feedback?: 'positive' | 'negative';
+  isComplete?: boolean; // Track if the message response is complete
 }
 
 export interface ApiConfig {

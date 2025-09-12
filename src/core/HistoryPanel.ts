@@ -178,6 +178,54 @@ class HistoryPanel {
     }
   }
 
+  updateChatInLocalState(updatedChat: HistoryChat) {
+    // Update local chats array
+    const index = this.chats.findIndex(
+      (c) => c.sessionId === updatedChat.sessionId
+    );
+    if (index !== -1) {
+      this.chats[index] = updatedChat;
+
+      // Re-render the grouped chats to reflect changes (like new messages/updated timestamps)
+      this.chatsContainer.innerHTML = '';
+      this.renderGroupedChats(this.chatsContainer);
+
+      // Maintain active state if this was the active chat
+      if (
+        this.activeChat &&
+        this.activeChat.sessionId === updatedChat.sessionId
+      ) {
+        this.setActiveChat(updatedChat);
+      }
+    }
+  }
+
+  refreshFromStorage() {
+    // Refresh the local chats array from storage
+    const freshChats = this.storage.getChats();
+    this.chats.splice(0, this.chats.length, ...freshChats);
+
+    // Re-render the entire history panel
+    this.chatsContainer.innerHTML = '';
+    if (this.chats.length === 0) {
+      this.chatsContainer.appendChild(this.renderEmptyState());
+    } else {
+      this.renderGroupedChats(this.chatsContainer);
+
+      // Maintain active state if we still have an active chat
+      if (this.activeChat) {
+        const activeChat = this.chats.find(
+          (c) => c.sessionId === this.activeChat!.sessionId
+        );
+        if (activeChat) {
+          this.setActiveChat(activeChat);
+        } else {
+          this.activeChat = null;
+        }
+      }
+    }
+  }
+
   private renderChat(chat: HistoryChat) {
     const chatItem = document.createElement('div');
     chatItem.className = 'chat-widget-history-chat';
