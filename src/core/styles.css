@@ -303,6 +303,7 @@
 .chat-message-bot {
   margin-right: auto;
   justify-content: flex-start;
+  flex-direction: column;
 }
 
 .chat-message-content-wrapper-main {
