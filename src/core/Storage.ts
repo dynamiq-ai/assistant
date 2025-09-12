@@ -94,7 +94,9 @@ export class Storage {
 
   public updateChat(chat: HistoryChat): void {
     const chats = this.getChats();
-    const index = chats.findIndex((c) => c.sessionId === chat.sessionId);
+    const index = chats.findIndex(
+      (c) => c.sessionId === chat.sessionId && c.updatedAt === chat.updatedAt
+    );
 
     if (index !== -1) {
       chats[index] = chat;
@@ -109,9 +111,16 @@ export class Storage {
     }
   }
 
-  public removeChat(sessionId: string): void {
+  public removeChat(sessionId: string, updatedAt?: number): void {
     const chats = this.getChats();
-    const filteredChats = chats.filter((chat) => chat.sessionId !== sessionId);
+    const filteredChats = chats.filter((chat) => {
+      if (updatedAt !== undefined) {
+        return !(chat.sessionId === sessionId && chat.updatedAt === updatedAt);
+      } else {
+        // Backward compatibility: remove all chats with matching sessionId
+        return chat.sessionId !== sessionId;
+      }
+    });
     this.storage.setItem(STORAGE_KEY, JSON.stringify(filteredChats));
   }
 
