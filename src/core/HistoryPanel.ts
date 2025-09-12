@@ -3,22 +3,16 @@ import { Storage } from './Storage';
 
 class HistoryPanel {
   private readonly chats: HistoryChat[] = [];
-  private readonly onChatItemClick: (
-    sessionId: string,
-    updatedAt: number
-  ) => void;
-  private readonly onChatItemDelete?: (
-    sessionId: string,
-    updatedAt: number
-  ) => void;
+  private readonly onChatItemClick: (sessionId: string) => void;
+  private readonly onChatItemDelete?: (sessionId: string) => void;
   private readonly isStreamingActive: () => boolean;
   private chatsContainer: HTMLDivElement;
   private readonly storage: Storage;
   private activeChat: HistoryChat | null = null;
 
   constructor(
-    onChatItemClick: (sessionId: string, updatedAt: number) => void,
-    onChatItemDelete?: (sessionId: string, updatedAt: number) => void,
+    onChatItemClick: (sessionId: string) => void,
+    onChatItemDelete?: (sessionId: string) => void,
     isStreamingActive?: () => boolean
   ) {
     this.storage = Storage.getInstance();
@@ -177,7 +171,7 @@ class HistoryPanel {
         item.classList.remove('active');
       });
     const chatItem = this.chatsContainer.querySelector(
-      `.chat-widget-history-chat[data-session-id="${chat.sessionId}"][data-updated-at="${chat.updatedAt}"]`
+      `.chat-widget-history-chat[data-session-id="${chat.sessionId}"]`
     );
     if (chatItem) {
       chatItem.classList.add('active');
@@ -188,7 +182,6 @@ class HistoryPanel {
     const chatItem = document.createElement('div');
     chatItem.className = 'chat-widget-history-chat';
     chatItem.setAttribute('data-session-id', chat.sessionId);
-    chatItem.setAttribute('data-updated-at', chat.updatedAt.toString());
 
     // Check if streaming is active to disable the chat item
     const isDisabled = this.isStreamingActive();
@@ -214,7 +207,7 @@ class HistoryPanel {
     if (!isDisabled) {
       deleteBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        this.deleteChat(chat.sessionId, chat.updatedAt);
+        this.deleteChat(chat.sessionId);
       });
     } else {
       deleteBtn.style.pointerEvents = 'none';
@@ -224,7 +217,7 @@ class HistoryPanel {
 
     if (!isDisabled) {
       chatItem.addEventListener('click', () =>
-        this.onChatItemClick(chat.sessionId, chat.updatedAt)
+        this.onChatItemClick(chat.sessionId)
       );
     }
     return chatItem;
@@ -246,18 +239,14 @@ class HistoryPanel {
     return historyEmpty;
   }
 
-  private deleteChat(sessionId: string, updatedAt: number) {
-    // Remove from storage using both sessionId and updatedAt
-    this.storage.removeChat(sessionId, updatedAt);
+  private deleteChat(sessionId: string) {
+    // Remove from storage
+    this.storage.removeChat(sessionId);
 
-    // Remove from local state using both sessionId and updatedAt
-    const index = this.chats.findIndex(
-      (c) => c.sessionId === sessionId && c.updatedAt === updatedAt
-    );
+    // Remove from local state
+    const index = this.chats.findIndex((c) => c.sessionId === sessionId);
     if (index !== -1) {
-      const wasActive =
-        this.activeChat?.sessionId === sessionId &&
-        this.activeChat?.updatedAt === updatedAt;
+      const wasActive = this.activeChat?.sessionId === sessionId;
       this.chats.splice(index, 1);
       if (wasActive) {
         this.activeChat = null;
@@ -277,7 +266,7 @@ class HistoryPanel {
     }
 
     // Notify parent
-    this.onChatItemDelete?.(sessionId, updatedAt);
+    this.onChatItemDelete?.(sessionId);
   }
 }
 
