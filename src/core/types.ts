@@ -71,6 +71,8 @@ export interface ChatWidgetOptions {
     containerId: string
   ) => void;
   onNewChat?: (params: CustomParams) => void;
+  onChatOpen?: (params: CustomParams) => void;
+  onChatClose?: (params: CustomParams) => void;
   onPromptSend?: (prompt: string, params: CustomParams) => void;
   onChatDelete?: (deletedSessionId: string, params: CustomParams) => void;
   onImageBlock?: (imageInfo: string[]) => Promise<string[]>;
