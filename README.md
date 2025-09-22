@@ -210,7 +210,9 @@ Your assistant will appear as an elegant chat widget on your page:
 | `onLink`       | The callback function to handle links.          |
 | `onNewChat`    | The callback function to handle new chat.       |
 | `onPromptSend` | The callback function to handle prompt sending. |
-| `onChatDelete` | The callback function to handle chat deletion   |
+| `onChatDelete` | The callback function to handle chat deletion.  |
+| `onChatOpen`   | The callback function to handle open chat       |
+| `onChatClose`  | The callback function to handle close chat      |
 
 ## 🤝 Contributing
 
