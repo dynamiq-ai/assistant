@@ -73,8 +73,8 @@
 @media only screen and (min-width: 768px) {
   .chat-widget-container {
     bottom: 70px;
-    width: 400px;
-    height: 600px;
+    width: 480px;
+    height: 670px;
   }
   .chat-widget-container-toggle-button {
     bottom: -5px;
@@ -254,6 +254,14 @@
   justify-content: center;
 }
 
+.chat-widget-welcome-icon {
+  margin-bottom: 10px;
+}
+
+.chat-widget-welcome-icon svg path {
+  fill: var(--primary-color);
+}
+
 .chat-widget-prompt {
   text-align: left;
   border-width: 0;
@@ -265,10 +273,15 @@
   font-weight: 500;
   font-family: var(--font-family);
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .chat-widget-container-full-screen .chat-widget-prompt {
   height: 104px;
+  flex-direction: column;
+  align-items: flex-start;
 }
 
 .chat-widget-messages,
