@@ -88,7 +88,7 @@
     "husky": "^9.1.7",
     "jest": "^28.1.0",
     "jest-environment-jsdom": "^28.1.0",
-    "parcel": "^2.6.0",
+    "parcel": "^2.14.4",
     "postcss": "^8.4.14",
     "process": "^0.11.10",
     "react": "^18.1.0",
@@ -99,16 +99,12 @@
     "rollup-plugin-terser": "^7.0.2",
     "semantic-release": "^24.2.3",
     "ts-jest": "^28.0.2",
-    "typescript": "^4.6.4",
+    "typescript": "^5.7.2",
     "typescript-eslint": "^8.28.0"
   },
   "peerDependencies": {
-    "marked": ">=15.0.0",
     "react": ">=16.8.0",
-    "react-dom": ">=16.8.0",
-    "vega": "5.33.0",
-    "vega-embed": "6.29.0",
-    "vega-lite": "5.23.0"
+    "react-dom": ">=16.8.0"
   },
   "config": {
     "commitizen": {
@@ -116,6 +112,21 @@
     }
   },
   "dependencies": {
-    "eventsource-parser": "^3.0.2"
+    "eventsource-parser": "^3.0.2",
+    "marked": "17.0.1",
+    "vega": "6.2.0",
+    "vega-embed": "7.1.0",
+    "vega-lite": "6.4.2"
+  },
+  "alias": {
+    "vega-embed": "vega-embed/build/embed.js",
+    "vega": "vega/build/vega.module.js",
+    "vega-lite": "vega-lite/build/index.js",
+    "vega-themes": "vega-themes/build/index.js",
+    "vega-tooltip": "vega-tooltip/build/index.js",
+    "vega-schema-url-parser": "vega-schema-url-parser/dist/parser.modern.js",
+    "vega-interpreter": "vega-interpreter/build/vega-interpreter.js",
+    "vega-canvas": "vega-canvas/build/vega-canvas.browser.js",
+    "canvas": false
   }
 }

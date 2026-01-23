@@ -50,13 +50,13 @@
 ## 📦 Installation
 
 ```bash
-npm install @dynamiq/assistant marked@15 vega@5.33.0 vega-lite@5.23.0 vega-embed@6.29.0
+npm install @dynamiq/assistant
 ```
 
 Or using yarn:
 
 ```bash
-yarn add @dynamiq/assistant marked@15 vega@5.33.0 vega-lite@5.23.0 vega-embed@6.29.0
+yarn add @dynamiq/assistant
 ```
 
 ## 🔧 Setup
