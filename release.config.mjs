@@ -12,6 +12,7 @@ export default {
           { type: 'docs', scope: 'README', release: 'patch' },
           { type: 'refactor', release: 'patch' },
           { type: 'style', release: 'patch' },
+          { type: 'chore', release: 'patch' },
         ],
       },
     ],
