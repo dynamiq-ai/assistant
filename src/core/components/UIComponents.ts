@@ -1,4 +1,5 @@
 import { ChatWidgetOptions, IntermediateStep } from '../types';
+import { ARIA_LABELS } from '../constants';
 
 export class UIComponents {
   static createWidget(options: ChatWidgetOptions): HTMLElement {
@@ -31,8 +32,10 @@ export class UIComponents {
     const toggleButton = document.createElement('button');
     toggleButton.className = 'chat-widget-toggle';
     toggleButton.type = 'button';
+    toggleButton.setAttribute('aria-label', ARIA_LABELS.openChat);
+    toggleButton.setAttribute('aria-expanded', 'false');
     toggleButton.innerHTML =
-      '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>';
+      '<svg aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>';
     return toggleButton;
   }
 
@@ -58,19 +61,22 @@ export class UIComponents {
     // Add the New Chat button
     const newChatButton = document.createElement('button');
     newChatButton.className = 'chat-widget-new-chat';
+    newChatButton.setAttribute('aria-label', ARIA_LABELS.newChat);
     newChatButton.innerHTML =
-      '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg> New Chat';
+      '<svg aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg> New Chat';
 
     const closeButton = document.createElement('button');
     closeButton.className = 'chat-widget-close';
     closeButton.type = 'button';
+    closeButton.setAttribute('aria-label', ARIA_LABELS.close);
     closeButton.innerHTML = '&times;';
 
     const fullScreenButton = document.createElement('button');
     fullScreenButton.className = 'chat-widget-full-screen';
     fullScreenButton.type = 'button';
+    fullScreenButton.setAttribute('aria-label', ARIA_LABELS.fullScreen);
     fullScreenButton.innerHTML =
-      '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"></path></svg>';
+      '<svg aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"></path></svg>';
 
     headerActions.appendChild(newChatButton);
     if (options.allowFullScreen) {
@@ -110,14 +116,16 @@ export class UIComponents {
     const sendButton = document.createElement('button');
     sendButton.className = 'chat-widget-send';
     sendButton.type = 'button';
+    sendButton.setAttribute('aria-label', ARIA_LABELS.send);
     sendButton.innerHTML =
-      '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M21.7499 11.9895C21.7506 12.2567 21.6798 12.5193 21.545 12.7501C21.4102 12.9808 21.2162 13.1714 20.983 13.302L5.24144 22.3029C5.01527 22.4312 4.75987 22.499 4.49988 22.4998C4.26011 22.4993 4.02395 22.4413 3.8112 22.3308C3.59845 22.2202 3.4153 22.0602 3.27711 21.8643C3.13892 21.6684 3.04972 21.4421 3.01698 21.2046C2.98424 20.9671 3.00892 20.7252 3.08894 20.4992L5.653 13.0039C5.67827 12.9297 5.72612 12.8653 5.78985 12.8198C5.85357 12.7742 5.92997 12.7497 6.00831 12.7498H12.7499C12.8527 12.75 12.9545 12.7291 13.0488 12.6883C13.1432 12.6476 13.2282 12.5879 13.2986 12.5129C13.3689 12.4379 13.4231 12.3492 13.4577 12.2524C13.4923 12.1556 13.5067 12.0527 13.4999 11.9501C13.4829 11.7572 13.3936 11.5779 13.25 11.4481C13.1064 11.3182 12.9191 11.2474 12.7255 11.2498H6.01488C5.93665 11.2499 5.86034 11.2256 5.79662 11.1802C5.73291 11.1348 5.68499 11.0706 5.65956 10.9967L3.08706 3.49667C2.98688 3.20928 2.9765 2.89821 3.05728 2.60478C3.13807 2.31135 3.3062 2.04943 3.53936 1.85381C3.77251 1.65819 4.05966 1.53812 4.36267 1.50955C4.66567 1.48098 4.9702 1.54526 5.23581 1.69385L20.9858 10.6835C21.2175 10.814 21.4103 11.0036 21.5446 11.2331C21.6788 11.4626 21.7497 11.7236 21.7499 11.9895Z" fill="#783F8E"/></svg>';
+      '<svg aria-hidden="true" focusable="false" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M21.7499 11.9895C21.7506 12.2567 21.6798 12.5193 21.545 12.7501C21.4102 12.9808 21.2162 13.1714 20.983 13.302L5.24144 22.3029C5.01527 22.4312 4.75987 22.499 4.49988 22.4998C4.26011 22.4993 4.02395 22.4413 3.8112 22.3308C3.59845 22.2202 3.4153 22.0602 3.27711 21.8643C3.13892 21.6684 3.04972 21.4421 3.01698 21.2046C2.98424 20.9671 3.00892 20.7252 3.08894 20.4992L5.653 13.0039C5.67827 12.9297 5.72612 12.8653 5.78985 12.8198C5.85357 12.7742 5.92997 12.7497 6.00831 12.7498H12.7499C12.8527 12.75 12.9545 12.7291 13.0488 12.6883C13.1432 12.6476 13.2282 12.5879 13.2986 12.5129C13.3689 12.4379 13.4231 12.3492 13.4577 12.2524C13.4923 12.1556 13.5067 12.0527 13.4999 11.9501C13.4829 11.7572 13.3936 11.5779 13.25 11.4481C13.1064 11.3182 12.9191 11.2474 12.7255 11.2498H6.01488C5.93665 11.2499 5.86034 11.2256 5.79662 11.1802C5.73291 11.1348 5.68499 11.0706 5.65956 10.9967L3.08706 3.49667C2.98688 3.20928 2.9765 2.89821 3.05728 2.60478C3.13807 2.31135 3.3062 2.04943 3.53936 1.85381C3.77251 1.65819 4.05966 1.53812 4.36267 1.50955C4.66567 1.48098 4.9702 1.54526 5.23581 1.69385L20.9858 10.6835C21.2175 10.814 21.4103 11.0036 21.5446 11.2331C21.6788 11.4626 21.7497 11.7236 21.7499 11.9895Z" fill="#783F8E"/></svg>';
 
     const abortButton = document.createElement('button');
     abortButton.className = 'chat-widget-abort';
     abortButton.type = 'button';
+    abortButton.setAttribute('aria-label', ARIA_LABELS.stop);
     abortButton.innerHTML =
-      '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="2" fill="currentColor" stroke="currentColor"/></svg>';
+      '<svg aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="2" fill="currentColor" stroke="currentColor"/></svg>';
     abortButton.title = 'Stop generating';
 
     // Add file upload button if enabled
@@ -134,8 +142,9 @@ export class UIComponents {
 
       const fileButton = document.createElement('button');
       fileButton.className = 'chat-widget-file-button';
+      fileButton.setAttribute('aria-label', ARIA_LABELS.attachFiles);
       fileButton.innerHTML =
-        '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>';
+        '<svg aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>';
       fileButton.title = 'Attach files';
 
       fileInputContainer.appendChild(fileInput);
