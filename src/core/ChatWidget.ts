@@ -20,7 +20,7 @@ import { marked, Renderer, type Tokens } from 'marked';
 import HistoryPanel from './HistoryPanel';
 import { Storage } from './Storage';
 import vegaEmbed from 'vega-embed';
-import { INPUT_V_PADDING, MAX_INPUT_HEIGHT } from './constants';
+import { ARIA_LABELS, INPUT_V_PADDING, MAX_INPUT_HEIGHT } from './constants';
 import { UIComponents } from './components/UIComponents';
 
 // Configure marked for safe rendering
@@ -44,6 +44,7 @@ export class ChatWidgetCore {
   private storage: Storage;
   private abortController: AbortController | null = null;
   private pendingContracts: Set<string> = new Set();
+  private manageToggleLabel: boolean = true;
   private progressMessageInterval: NodeJS.Timeout | null = null;
   private progressMessages: string[] = [
     'Sharpening my virtual pencil…',
@@ -383,6 +384,12 @@ export class ChatWidgetCore {
       ? document.getElementById(this.options.toggleButton)
       : UIComponents.createToggleButton();
 
+    // Label a host-provided toggle only if it has no accessible name of its own
+    if (this.options.toggleButton && toggleButton) {
+      this.manageToggleLabel = !this.hasAccessibleName(toggleButton);
+      this.updateToggleButtonState(toggleButton);
+    }
+
     // Create the chat container
     const chatContainer = UIComponents.createChatContainer(this.options);
 
@@ -453,6 +460,35 @@ export class ChatWidgetCore {
 
     // Store references
     this.widgetElement = widget;
+  }
+
+  private getToggleButton(): HTMLElement | null {
+    return this.options.toggleButton
+      ? document.getElementById(this.options.toggleButton)
+      : this.widgetElement?.querySelector<HTMLElement>('.chat-widget-toggle') ||
+          null;
+  }
+
+  private hasAccessibleName(element: HTMLElement): boolean {
+    return (
+      !!element.getAttribute('aria-label')?.trim() ||
+      !!element.getAttribute('aria-labelledby')?.trim() ||
+      !!element.getAttribute('title')?.trim() ||
+      !!element.textContent?.trim()
+    );
+  }
+
+  private updateToggleButtonState(toggleButton: HTMLElement | null): void {
+    if (!toggleButton) {
+      return;
+    }
+    toggleButton.setAttribute('aria-expanded', String(this.isOpen));
+    if (this.manageToggleLabel) {
+      toggleButton.setAttribute(
+        'aria-label',
+        this.isOpen ? ARIA_LABELS.closeChat : ARIA_LABELS.openChat
+      );
+    }
   }
 
   private attachEventListeners(): void {
@@ -737,6 +773,7 @@ export class ChatWidgetCore {
       const removeButton = document.createElement('button');
       removeButton.innerHTML = '&times;';
       removeButton.title = 'Remove file';
+      removeButton.setAttribute('aria-label', ARIA_LABELS.removeFile);
       removeButton.addEventListener('click', () => {
         this.selectedFiles.splice(index, 1);
         this.updateFilePreview();
@@ -773,10 +810,12 @@ export class ChatWidgetCore {
       // Refresh history panel from storage to ensure it's up to date
       this.historyPanel.refreshFromStorage();
 
+      this.updateToggleButtonState(this.getToggleButton());
+
       // Change the toggle button icon to a cross
       if (toggleButton) {
         toggleButton.innerHTML =
-          '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>';
+          '<svg aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>';
       }
 
       // Call onChatOpen callback if provided
@@ -800,10 +839,12 @@ export class ChatWidgetCore {
       chatContainer.style.display = 'none';
       this.isOpen = false;
 
+      this.updateToggleButtonState(this.getToggleButton());
+
       // Change the toggle button icon back to chat
       if (toggleButton) {
         toggleButton.innerHTML =
-          '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>';
+          '<svg aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>';
       }
 
       // Call onChatClose callback if provided
