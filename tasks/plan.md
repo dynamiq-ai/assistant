@@ -67,7 +67,7 @@ T12 Docs/CI hygiene (last)
 - [ ] Human review before merge (this is the release that matters most)
 
 ### Phase 2: Exfiltration & code-execution surface
-- [ ] Task 5: `allowedResourceOrigins` option for remote images
+- [x] Task 5: `allowedResourceOrigins` option for remote images
 - [ ] Task 6: Vega interpreter mode + restricted loader
 
 ### Checkpoint B

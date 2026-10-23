@@ -155,6 +155,38 @@ export function safeUrl(url: string | null | undefined): string | null {
   return url.trim();
 }
 
+/**
+ * Whether the browser may load a resource (image, chart data, ...) from `url`.
+ * Same-origin, relative, data: and blob: URLs are always allowed; other origins
+ * must be listed in `allowedOrigins`, or `allowedOrigins` must contain '*'.
+ */
+export function isAllowedResourceUrl(
+  url: string,
+  allowedOrigins: string[] = []
+): boolean {
+  if (allowedOrigins.includes('*')) {
+    return true;
+  }
+  let parsed: URL;
+  try {
+    parsed = new URL(url, window.location.href);
+  } catch {
+    return false;
+  }
+  if (parsed.protocol === 'data:') {
+    return true;
+  }
+  const origins = [window.location.origin];
+  allowedOrigins.forEach((origin) => {
+    try {
+      origins.push(new URL(origin).origin);
+    } catch {
+      // ignore invalid entries
+    }
+  });
+  return origins.includes(parsed.origin);
+}
+
 export const renderImageAndLink = (
   options: ChatWidgetOptions,
   imageInfo: { contract: string }

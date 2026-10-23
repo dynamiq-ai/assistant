@@ -196,6 +196,7 @@ Your assistant will appear as an elegant chat widget on your page:
 | `hideCloseButton`       | `boolean`             | Whether to hide close button. By default `false`.                                                |
 | `fullScreen`            | `boolean`             | Whether to open chat in full screen. By default `false`.                                         |
 | `open`                  | `boolean`             | Whether to open chat on page load. By default `false`.                                           |
+| `allowedResourceOrigins` | `string[]`          | Origins that bot messages may load images and chart data from. Same-origin and `data:` URLs are always allowed; `['*']` allows any origin. By default only same-origin. |
 
 ### Events
 

