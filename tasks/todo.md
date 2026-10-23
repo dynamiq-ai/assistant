@@ -87,7 +87,7 @@ Standard verification for every task: `npm test`, `npm run build`, `npm run lint
 **Acceptance criteria:**
 - [x] Example charts render with a CSP of `script-src 'self'` (no `unsafe-eval`)
 - [x] A spec with `data.url` to a non-allowed origin fails gracefully (no request; Vega logs a warning and draws an empty chart)
-- [ ] Parcel alias still resolves (examples run) — checked at final verification
+- [x] Parcel alias still resolves (`npm run build:examples` + example page loads)
 
 **Verification:** build; manual with a CSP meta tag added temporarily to `examples/react/index.html`.
 **Dependencies:** T2, T5
@@ -179,9 +179,9 @@ Standard verification for every task: `npm test`, `npm run build`, `npm run lint
 **Description:** README: security notes (endpoint authorization risk, recommend a proxy; HTML options aren't sanitized). Prompt `text` via `textContent`. `pages.yml`: `npm ci`, actions `@v4`. ESLint: `settings.react.version: 'detect'`. Update CLAUDE.md test instructions.
 
 **Acceptance criteria:**
-- [ ] README has a "Security" section
-- [ ] Lint runs with no React-version warning
-- [ ] CLAUDE.md no longer says "no test suite"
+- [x] README has a "Security" section
+- [x] Lint runs with no React-version warning
+- [x] CLAUDE.md no longer says "no test suite"
 
 **Verification:** lint; build; read-through.
 **Dependencies:** all previous
@@ -189,4 +189,4 @@ Standard verification for every task: `npm test`, `npm run build`, `npm run lint
 **Scope:** S
 
 ### Checkpoint D
-- [ ] All acceptance criteria met; final review
+- [x] All acceptance criteria met (except deferred chat_history de-duplication); final review

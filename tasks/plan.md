@@ -85,10 +85,10 @@ T12 Docs/CI hygiene (last)
 
 ### Phase 4: Performance & hygiene
 - [x] Task 11: Render charts only once the message is final; finalize Vega views (chat_history de-duplication deferred — needs backend confirmation, see Open Questions)
-- [ ] Task 12: README auth guidance, prompt-text `textContent`, CI `npm ci`/actions v4, eslint react version
+- [x] Task 12: README auth guidance, prompt-text `textContent`, CI `npm ci`/actions v4, eslint react version
 
 ### Checkpoint D
-- [ ] All acceptance criteria met; ready for final review
+- [x] All acceptance criteria met except the deferred chat_history item; ready for final review
 
 ## Risks and Mitigations
 
