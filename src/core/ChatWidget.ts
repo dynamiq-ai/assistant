@@ -39,7 +39,10 @@ export class ChatWidgetCore {
   private readonly handleToggleClick = () => this.toggle();
   // Resources of rendered messages, released when the messages are removed
   private objectUrls: string[] = [];
-  private chartViews: { finalize(): void }[] = [];
+  private chartFinalizers: (() => void)[] = [];
+  // Incremented whenever rendered messages are released, so charts that
+  // finish embedding afterwards know they belong to removed messages
+  private renderGeneration = 0;
   private progressMessageInterval: NodeJS.Timeout | null = null;
   private progressMessages: string[] = [
     'Sharpening my virtual pencil…',
@@ -951,6 +954,15 @@ export class ChatWidgetCore {
         this.abortController = null;
         this.historyPanel.updateDisabledState();
         this.updateNewChatButtonState();
+        // Keep whatever was streamed before the failure (charts, images, feedback)
+        const lastMessage = this.messages.at(-1);
+        if (
+          lastMessage?.sender === 'bot' &&
+          !lastMessage.isComplete &&
+          lastMessage.text
+        ) {
+          await this.finalizeLastMessage();
+        }
         // Add an error message to the chat
         this.addBotMessage(
           'Sorry, there was an error processing your message. Please try again later.'
@@ -1381,12 +1393,17 @@ export class ChatWidgetCore {
           // We need to unescape it if vegaEmbed expects a raw string, or parse if it expects an object.
           // vegaEmbed can take a string spec.
           const chartSpec = JSON.parse(specString);
-          const { view } = await embedChart(
+          const generation = this.renderGeneration;
+          const { finalize } = await embedChart(
             chartDiv,
             chartSpec,
             this.options.allowedResourceOrigins
           );
-          this.chartViews.push(view);
+          if (generation === this.renderGeneration) {
+            this.chartFinalizers.push(finalize);
+          } else {
+            finalize();
+          }
         } catch {
           chartDiv.innerHTML = 'Error rendering chart data.';
         }
@@ -1442,8 +1459,9 @@ export class ChatWidgetCore {
   private releaseMessageResources(): void {
     this.objectUrls.forEach((url) => URL.revokeObjectURL(url));
     this.objectUrls = [];
-    this.chartViews.forEach((view) => view.finalize());
-    this.chartViews = [];
+    this.chartFinalizers.forEach((finalize) => finalize());
+    this.chartFinalizers = [];
+    this.renderGeneration++;
   }
 
   public destroy(): void {

@@ -27,7 +27,12 @@ const mockStreamingResponse = (chunks: string[]) => {
 
 beforeEach(() => {
   localStorage.clear();
-  mockedEmbed.mockClear();
+  jest.restoreAllMocks();
+  mockedEmbed.mockReset();
+  mockedEmbed.mockImplementation(async () => ({
+    view: { finalize: jest.fn() },
+    finalize: jest.fn(),
+  }));
 });
 
 describe('chart rendering', () => {
@@ -44,9 +49,9 @@ describe('chart rendering', () => {
     widget.destroy();
   });
 
-  it('finalizes chart views when the chat is replaced', async () => {
+  it('finalizes embedded charts when the chat is replaced', async () => {
     const finalize = jest.fn();
-    mockedEmbed.mockResolvedValue({ view: { finalize } });
+    mockedEmbed.mockResolvedValue({ view: { finalize: jest.fn() }, finalize });
     const widget = new ChatWidgetCore(document.createElement('div'), {});
 
     widget.addBotMessage(CHART);
@@ -76,6 +81,60 @@ describe('chart rendering', () => {
     await flushPromises();
 
     expect(mockedEmbed).toHaveBeenCalledTimes(2);
+    widget.destroy();
+  });
+});
+
+describe('chart rendering edge cases', () => {
+  it('embeds charts of a partial answer when the stream fails', async () => {
+    global.fetch = jest.fn(async () => {
+      const encoder = new TextEncoder();
+      const body = new ReadableStream({
+        start(controller) {
+          const content = `Partial\n\n${CHART}\n\n`;
+          controller.enqueue(
+            encoder.encode(
+              `data: ${JSON.stringify({ data: { choices: [{ delta: { content } }] } })}\n\n`
+            )
+          );
+          // Erroring right away would discard the queued chunk
+          setTimeout(() => controller.error(new Error('network down')));
+        },
+      });
+      return { ok: true, body };
+    }) as unknown as typeof fetch;
+    jest.spyOn(console, 'error').mockImplementation(() => {});
+    const container = document.createElement('div');
+    const widget = new ChatWidgetCore(container, {
+      api: { url: '/api', streaming: true },
+      onFeedback: () => {},
+    });
+
+    widget.sendMessage('chart please');
+    await flushPromises();
+
+    expect(mockedEmbed).toHaveBeenCalledTimes(1);
+    const [partial] = container.querySelectorAll('.chat-message-bot');
+    expect(partial.querySelector('.chat-message-feedback')).not.toBeNull();
+    widget.destroy();
+  });
+
+  it('finalizes a chart that finishes embedding after the chat was replaced', async () => {
+    const finalize = jest.fn();
+    let resolveEmbed: (value: unknown) => void = () => {};
+    mockedEmbed.mockReturnValue(
+      new Promise((resolve) => {
+        resolveEmbed = resolve;
+      })
+    );
+    const widget = new ChatWidgetCore(document.createElement('div'), {});
+
+    widget.addBotMessage(CHART);
+    widget.startNewChat();
+    resolveEmbed({ view: { finalize: jest.fn() }, finalize });
+    await flushPromises();
+
+    expect(finalize).toHaveBeenCalledTimes(1);
     widget.destroy();
   });
 });
