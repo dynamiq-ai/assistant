@@ -111,11 +111,12 @@ export class Storage {
   }
 
   /**
-   * Remove all stored chats of every user and the anonymous user id
+   * Remove all stored chats of every user. The anonymous user id is kept, so
+   * widgets that are still mounted keep saving under an id that is shown
+   * after a reload.
    */
   public clear(): void {
     this.storage.removeItem(STORAGE_KEY);
-    this.storage.removeItem(ANONYMOUS_USER_ID_KEY);
   }
 }
 

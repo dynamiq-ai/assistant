@@ -167,3 +167,33 @@ describe('welcome prompts', () => {
     widget.destroy();
   });
 });
+
+describe('updateParams', () => {
+  it('ignores undefined values instead of clearing the user and session ids', () => {
+    const onPromptSend = jest.fn();
+    const { widget } = mount({ onPromptSend });
+    widget.sendMessage('first');
+    const { userId, sessionId } = onPromptSend.mock.calls[0][1];
+
+    widget.updateParams({ userId: undefined, sessionId: undefined, lang: 'de' });
+    widget.sendMessage('second');
+
+    expect(onPromptSend.mock.calls[1][1]).toMatchObject({ userId, sessionId, lang: 'de' });
+    widget.destroy();
+  });
+});
+
+describe('IME composition in Safari', () => {
+  it('does not send on the Enter that confirms a composition (keyCode 229)', () => {
+    const { container, widget } = mount();
+    const input = container.querySelector<HTMLTextAreaElement>('.chat-widget-input textarea')!;
+    input.value = 'こんにちは';
+
+    input.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Enter', keyCode: 229, bubbles: true })
+    );
+
+    expect(container.querySelectorAll('.chat-message-user')).toHaveLength(0);
+    widget.destroy();
+  });
+});

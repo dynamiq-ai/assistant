@@ -456,7 +456,13 @@ export class ChatWidgetCore {
     if (input) {
       input.addEventListener('keydown', (e) => {
         // Shift+Enter adds a new line; Enter during IME composition confirms a candidate
-        if (e.key !== 'Enter' || e.shiftKey || e.isComposing) {
+        // (Safari reports the confirming Enter with keyCode 229 instead)
+        if (
+          e.key !== 'Enter' ||
+          e.shiftKey ||
+          e.isComposing ||
+          e.keyCode === 229
+        ) {
           return;
         }
         if (input.value.trim()) {
@@ -1486,10 +1492,6 @@ export class ChatWidgetCore {
   public clearHistory(): void {
     this.abortController?.abort();
     this.storage.clear();
-    if (!this.options.params?.userId) {
-      this.params.userId = Storage.getAnonymousUserId();
-      Storage.userId = this.params.userId;
-    }
     this.historyPanel.refreshFromStorage();
     this.startNewChat();
   }
@@ -1601,7 +1603,11 @@ export class ChatWidgetCore {
   }
 
   public updateParams(params: ChatWidgetOptions['params']) {
-    this.params = { ...this.params, ...params };
+    // e.g. React hosts pass { userId: user?.id } while logged out
+    const definedParams = Object.fromEntries(
+      Object.entries(params ?? {}).filter(([, value]) => value !== undefined)
+    );
+    this.params = { ...this.params, ...definedParams };
     Storage.userId = this.params.userId;
   }
 

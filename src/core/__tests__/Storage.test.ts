@@ -1,4 +1,4 @@
-import { Storage } from '../Storage';
+import { Storage, clearChatHistory } from '../Storage';
 import { ChatWidgetCore } from '../ChatWidget';
 import { HistoryChat } from '../types';
 
@@ -103,5 +103,20 @@ describe('ChatWidgetCore history', () => {
     expect(container.querySelectorAll('.chat-widget-history-chat')).toHaveLength(0);
     expect(container.querySelectorAll('.chat-message')).toHaveLength(0);
     widget.destroy();
+  });
+});
+
+describe('clearChatHistory', () => {
+  it('keeps chats of a mounted anonymous widget visible after a reload', () => {
+    const first = new ChatWidgetCore(document.createElement('div'), {});
+    clearChatHistory();
+    first.sendMessage('after clearing');
+    first.destroy();
+
+    const container = document.createElement('div');
+    const second = new ChatWidgetCore(container, {});
+
+    expect(container.querySelectorAll('.chat-widget-history-chat')).toHaveLength(1);
+    second.destroy();
   });
 });
