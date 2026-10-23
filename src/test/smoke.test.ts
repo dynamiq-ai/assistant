@@ -26,3 +26,22 @@ describe('markdown rendering', () => {
     widget.destroy();
   });
 });
+
+describe('bot message rendering', () => {
+  const PAYLOAD = '<img src=x onerror="window.__xss = true">';
+
+  it('sanitizes streamed and history-loaded bot messages', async () => {
+    const container = document.createElement('div');
+    const widget = new ChatWidgetCore(container, {});
+
+    widget.sendMessage('hi');
+    const update = widget.addBotMessage('', true) as (m: string) => void;
+    update(`streamed ${PAYLOAD}`);
+    widget.addBotMessage(`complete ${PAYLOAD}`);
+    await new Promise((resolve) => setTimeout(resolve));
+
+    expect(container.querySelectorAll('.chat-message-bot')).toHaveLength(2);
+    expect(container.querySelector('[onerror]')).toBeNull();
+    widget.destroy();
+  });
+});

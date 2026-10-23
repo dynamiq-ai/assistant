@@ -204,3 +204,42 @@ describe('createMarkdownRenderer escaping', () => {
     expect(scripted.querySelector('a')).toBeNull();
   });
 });
+
+describe('createMarkdownRenderer sanitizing', () => {
+  it.each([
+    ['img onerror', '<img src=x onerror="alert(1)">'],
+    ['svg onload', '<svg onload="alert(1)"></svg>'],
+    ['script tag', '<script>alert(1)</script>'],
+    ['iframe', '<iframe src="https://evil.test"></iframe>'],
+    ['raw javascript: link', '<a href="javascript:alert(1)">x</a>'],
+    ['event handler on div', '<div onmouseover="alert(1)">hover</div>'],
+    ['form action', '<form action="https://evil.test"><button>go</button></form>'],
+  ])('removes %s from raw HTML', (_, payload) => {
+    const html = createMarkdownRenderer({}, () => {})(`hello ${payload}`);
+
+    expect(html).not.toMatch(/onerror|onload|onmouseover|<script|<iframe|<form|javascript:/i);
+  });
+
+  it('opens raw HTML links in a new tab without opener access', () => {
+    const link = render('<a href="https://example.com">x</a>').querySelector('a');
+
+    expect(link?.getAttribute('target')).toBe('_blank');
+    expect(link?.getAttribute('rel')).toBe('noopener noreferrer');
+  });
+
+  it('keeps the widget-owned chart, image and report markup', () => {
+    const el = render(
+      '```chart\n{"mark":"bar"}\n```\n\n```image\n{"contract":"c-1"}\n```\n\n```report\n{"name":"Ann","contractId":"m-1"}\n```',
+      { onImageBlock: async () => [], onLink: () => 'https://example.com/c' }
+    );
+
+    const chart = el.querySelector<HTMLElement>('.chat-message-chart');
+    expect(chart?.id).toMatch(/^vega-chart-/);
+    expect(JSON.parse(chart!.dataset.chartSpec!).mark.type).toBe('bar');
+    expect(el.querySelector('[data-contract="c-1"] .chat-contract-image')).not.toBeNull();
+    expect(el.querySelector('[data-contract="c-1"] a')?.getAttribute('href')).toBe(
+      'https://example.com/c'
+    );
+    expect(el.querySelector('.chat-message-report-card-manager')).not.toBeNull();
+  });
+});

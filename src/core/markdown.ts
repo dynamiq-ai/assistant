@@ -1,3 +1,4 @@
+import DOMPurify from 'dompurify';
 import { Marked, Renderer, type Tokens } from 'marked';
 import { ChatWidgetOptions, ReportPerson } from './types';
 import {
@@ -16,6 +17,9 @@ const REPORT_ARROW_SVG =
  * Each call builds its own `Marked` instance, so renderer overrides never leak
  * between widget instances or into a host page that also uses `marked`.
  * Contract IDs found in `image`/`report` blocks are reported via `onContract`.
+ *
+ * Bot text is untrusted (it can be steered by prompt injection), so the final
+ * HTML is always passed through DOMPurify before it reaches `innerHTML`.
  */
 export function createMarkdownRenderer(
   options: ChatWidgetOptions,
@@ -169,5 +173,17 @@ export function createMarkdownRenderer(
     },
   });
 
-  return (text: string) => marked.parse(text, { async: false }) as string;
+  // A private DOMPurify instance, so hooks don't affect the host page
+  const purify = DOMPurify(window);
+  purify.addHook('afterSanitizeAttributes', (node) => {
+    if (node.tagName === 'A' && node.hasAttribute('href')) {
+      node.setAttribute('target', '_blank');
+      node.setAttribute('rel', 'noopener noreferrer');
+    }
+  });
+
+  return (text: string) =>
+    purify.sanitize(marked.parse(text, { async: false }) as string, {
+      FORBID_TAGS: ['form', 'style'],
+    });
 }

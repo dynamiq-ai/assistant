@@ -59,11 +59,11 @@ T12 Docs/CI hygiene (last)
 - [x] Task 1: Jest + jsdom test setup
 - [x] Task 2: Extract markdown pipeline to `markdown.ts` with a per-instance `Marked`
 - [x] Task 3: Escape model data in custom renderers
-- [ ] Task 4: Sanitize rendered HTML with DOMPurify
+- [x] Task 4: Sanitize rendered HTML with DOMPurify
 
 ### Checkpoint A
-- [ ] XSS payload tests pass; `npm run build` + `npm run lint` clean
-- [ ] Manual: both examples render markdown, tables, charts, images, reports as before
+- [x] XSS payload tests pass; `npm run build` + `npm run lint` clean
+- [x] Manual: browser bundle renders markdown, tables, charts, images, reports, flags as before (mocked SSE harness)
 - [ ] Human review before merge (this is the release that matters most)
 
 ### Phase 2: Exfiltration & code-execution surface

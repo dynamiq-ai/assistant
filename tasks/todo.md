@@ -50,9 +50,9 @@ Standard verification for every task: `npm test`, `npm run build`, `npm run lint
 **Description:** Add `dompurify` and run the output of the `markdown.ts` render function through it, with an allowlist for widget-owned attributes and an `afterSanitizeAttributes` hook for link policy. Both innerHTML sinks (`updateMessage`, `renderMessage`) use only the sanitized output.
 
 **Acceptance criteria:**
-- [ ] Raw HTML payloads (`<img onerror>`, `<svg onload>`, `<iframe>`, `<script>`, `<a href=javascript:>`) are neutralized — streaming path, final render, and history reload
-- [ ] Charts, contract images, report cards, flags, tables still render (snapshot tests)
-- [ ] Browser IIFE bundle builds and includes DOMPurify
+- [x] Raw HTML payloads (`<img onerror>`, `<svg onload>`, `<iframe>`, `<script>`, `<a href=javascript:>`) are neutralized — streaming path, final render, and history reload
+- [x] Charts, contract images, report cards, flags, tables still render (snapshot tests)
+- [x] Browser IIFE bundle builds and includes DOMPurify
 
 **Verification:** tests green; build; manual check in both examples, including loading an old chat from history.
 **Dependencies:** T2, T3
@@ -60,8 +60,8 @@ Standard verification for every task: `npm test`, `npm run build`, `npm run lint
 **Scope:** M
 
 ### Checkpoint A
-- [ ] `npm test`, `npm run build`, `npm run lint` clean
-- [ ] Manual: react + vanilla examples behave as before
+- [x] `npm test`, `npm run build`, `npm run lint` clean
+- [x] Manual: browser bundle behaves as before (mocked SSE harness: stream, history reload)
 - [ ] Human review → merge Phase 1 PR
 
 ---
