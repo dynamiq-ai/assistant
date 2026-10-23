@@ -43,3 +43,17 @@ describe('embedChart', () => {
     ).resolves.toEqual({ href: 'https://data.example.com/d.json' });
   });
 });
+
+describe('embedChart spec handling', () => {
+  it('drops usermeta so a spec cannot override the embed options', async () => {
+    mockedEmbed.mockClear();
+    await embedChart(document.createElement('div'), {
+      mark: 'bar',
+      usermeta: { embedOptions: { ast: false, actions: true } },
+    } as never);
+
+    const spec = mockedEmbed.mock.calls[0][1];
+    expect(spec).not.toHaveProperty('usermeta');
+    expect(spec.mark).toBe('bar');
+  });
+});

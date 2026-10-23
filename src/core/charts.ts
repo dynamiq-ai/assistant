@@ -9,6 +9,8 @@ import { isAllowedResourceUrl } from './utils';
  * The spec is untrusted, so expressions run in the interpreter (no generated
  * code, which also keeps charts working under a CSP without 'unsafe-eval'),
  * and data can only be loaded from the allowed origins.
+ * `usermeta` is removed because vega-embed merges `usermeta.embedOptions` over
+ * the options below, which would let a spec turn these protections off.
  */
 export function embedChart(
   element: HTMLElement,
@@ -25,7 +27,12 @@ export function embedChart(
     return result;
   };
 
-  return vegaEmbed(element, spec, {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { usermeta, ...safeSpec } = spec as VisualizationSpec & {
+    usermeta?: unknown;
+  };
+
+  return vegaEmbed(element, safeSpec as VisualizationSpec, {
     actions: false,
     ast: true,
     expr: expressionInterpreter,
