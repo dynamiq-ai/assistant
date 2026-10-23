@@ -153,3 +153,17 @@ describe('destroy', () => {
     expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:preview');
   });
 });
+
+describe('welcome prompts', () => {
+  it('shows prompt text as plain text and keeps the HTML icon', () => {
+    const { container, widget } = mount({
+      prompts: [{ icon: '<svg class="icon"></svg>', text: '<b>Ask</b> me' }],
+    });
+
+    const prompt = container.querySelector<HTMLButtonElement>('.chat-widget-prompt')!;
+    expect(prompt.querySelector('b')).toBeNull();
+    expect(prompt.textContent).toContain('<b>Ask</b> me');
+    expect(prompt.querySelector('svg.icon')).not.toBeNull();
+    widget.destroy();
+  });
+});
