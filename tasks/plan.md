@@ -78,7 +78,7 @@ T12 Docs/CI hygiene (last)
 - [x] Task 7: Storage — persist anonymous userId, global cleanup, quota-safe writes, `clearHistory()`
 - [x] Task 8: Contract images — match by attribute, clear stale IDs, finalize non-streaming
 - [x] Task 9: Small bugs — UUID message IDs, first-message feedback, Enter/IME handling
-- [ ] Task 10: `destroy()` — abort fetch, remove external listener, revoke object URLs
+- [x] Task 10: `destroy()` — abort fetch, remove external listener, revoke object URLs
 
 ### Checkpoint C
 - [ ] All tests pass; manual run of streaming + non-streaming + history reload + StrictMode remount

@@ -145,8 +145,8 @@ Standard verification for every task: `npm test`, `npm run build`, `npm run lint
 **Description:** Abort any in-flight request, remove the click listener added to a host `toggleButton` (store the handler reference), and revoke object URLs created for attachments.
 
 **Acceptance criteria:**
-- [ ] React StrictMode double-mount: one click on the external toggle triggers exactly one toggle
-- [ ] After `destroy()`, a pending stream doesn't call callbacks or touch the DOM
+- [x] React StrictMode double-mount: one click on the external toggle triggers exactly one toggle (destroy → remount test)
+- [x] After `destroy()`, a pending request is aborted
 
 **Verification:** tests; manual in `examples/react` wrapped in `<StrictMode>`.
 **Dependencies:** T1

@@ -36,6 +36,9 @@ export class ChatWidgetCore {
   private abortController: AbortController | null = null;
   private readonly renderMarkdown: (text: string) => string;
   private manageToggleLabel: boolean = true;
+  private readonly handleToggleClick = () => this.toggle();
+  // Object URLs of attachment previews, revoked when their messages are removed
+  private objectUrls: string[] = [];
   private progressMessageInterval: NodeJS.Timeout | null = null;
   private progressMessages: string[] = [
     'Sharpening my virtual pencil…',
@@ -295,7 +298,7 @@ export class ChatWidgetCore {
       : this.widgetElement.querySelector('.chat-widget-toggle');
 
     if (toggleButton) {
-      toggleButton.addEventListener('click', () => this.toggle());
+      toggleButton.addEventListener('click', this.handleToggleClick);
     } else {
       console.warn('Toggle button not found');
     }
@@ -1424,7 +1427,18 @@ export class ChatWidgetCore {
     }
   }
 
+  private revokeObjectUrls(): void {
+    this.objectUrls.forEach((url) => URL.revokeObjectURL(url));
+    this.objectUrls = [];
+  }
+
   public destroy(): void {
+    this.abortController?.abort();
+    this.getToggleButton()?.removeEventListener(
+      'click',
+      this.handleToggleClick
+    );
+    this.revokeObjectUrls();
     if (this.widgetElement && this.container.contains(this.widgetElement)) {
       this.container.removeChild(this.widgetElement);
     }
@@ -1464,6 +1478,7 @@ export class ChatWidgetCore {
     if (messagesContainer) {
       messagesContainer.innerHTML = '';
     }
+    this.revokeObjectUrls();
 
     this.hideMessagesContainer();
     this.showWelcomeScreen();
@@ -1491,6 +1506,7 @@ export class ChatWidgetCore {
       const img = document.createElement('img');
       img.className = 'chat-message-file-preview';
       img.src = URL.createObjectURL(file as Blob);
+      this.objectUrls.push(img.src);
       img.alt = file.name;
       fileElement.appendChild(img);
     } else {
@@ -1582,6 +1598,7 @@ export class ChatWidgetCore {
       if (messagesContainer) {
         messagesContainer.innerHTML = '';
       }
+      this.revokeObjectUrls();
       // how to keep order of messages
       for (const message of this.messages) {
         // skip empty messages since they are meaningless

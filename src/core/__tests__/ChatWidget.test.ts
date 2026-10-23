@@ -103,3 +103,53 @@ describe('message input', () => {
     widget.destroy();
   });
 });
+
+describe('destroy', () => {
+  it('aborts a request that is still in flight', () => {
+    let signal: AbortSignal | undefined;
+    global.fetch = jest.fn((_url, init?: RequestInit) => {
+      signal = init?.signal ?? undefined;
+      return new Promise<Response>(() => {});
+    }) as unknown as typeof fetch;
+    const { widget } = mount({ api: { url: '/api' } });
+
+    widget.sendMessage('hi');
+    widget.destroy();
+
+    expect(signal?.aborted).toBe(true);
+  });
+
+  it('stops listening to a host-provided toggle button', () => {
+    const button = document.createElement('button');
+    button.id = 'host-toggle';
+    document.body.appendChild(button);
+    const onChatOpenFirst = jest.fn();
+    const onChatOpenSecond = jest.fn();
+
+    mount({ toggleButton: 'host-toggle', onChatOpen: onChatOpenFirst }).widget.destroy();
+    const { widget } = mount({ toggleButton: 'host-toggle', onChatOpen: onChatOpenSecond });
+    button.click();
+
+    expect(onChatOpenFirst).not.toHaveBeenCalled();
+    expect(onChatOpenSecond).toHaveBeenCalledTimes(1);
+    widget.destroy();
+    button.remove();
+  });
+
+  it('revokes object URLs created for attachment previews', () => {
+    URL.createObjectURL = jest.fn(() => 'blob:preview');
+    URL.revokeObjectURL = jest.fn();
+    const { widget } = mount();
+
+    widget.addMessage({
+      id: 'm1',
+      text: 'see file',
+      sender: 'user',
+      timestamp: Date.now(),
+      files: [new File(['x'], 'a.png', { type: 'image/png' })],
+    });
+    widget.destroy();
+
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:preview');
+  });
+});
