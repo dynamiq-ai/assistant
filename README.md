@@ -63,7 +63,7 @@ yarn add @dynamiq/assistant
 
 To use `@dynamiq/assistant`, first navigate to your Dynamiq deployment:
 
-1. Go to **Deployments** and ensure **Endpoint Authorization** is disabled
+1. Go to **Deployments** and ensure **Endpoint Authorization** is disabled (see [Security](#-security) for what this means)
 2. Click on the **Integration** tab
 3. Switch to the **Chat Widget** menu item
 4. Copy your unique API URL
@@ -179,7 +179,7 @@ Your assistant will appear as an elegant chat widget on your page:
 | `maxFileSize`           | `number`              | The maximum file size for file uploads in bytes.                                                 |
 | `acceptedFileTypes`     | `string`              | The accepted file types for file uploads.                                                        |
 | `params`                | `object`              | The parameters to pass to the assistant input.                                                   |
-| `params.userId`         | `string`              | The user ID. By default `crypto.randomUUID()`.                                                   |
+| `params.userId`         | `string`              | The user ID. By default a random ID that is kept in `localStorage`, so history survives reloads. |
 | `params.sessionId`      | `string`              | The session ID. By default `crypto.randomUUID()`.                                                |
 | `toggleButton`          | `string`              | The ID of the button to toggle the assistant.                                                    |
 | `prompts`               | `array`               | The prompts to show in the assistant.                                                            |
@@ -196,6 +196,7 @@ Your assistant will appear as an elegant chat widget on your page:
 | `hideCloseButton`       | `boolean`             | Whether to hide close button. By default `false`.                                                |
 | `fullScreen`            | `boolean`             | Whether to open chat in full screen. By default `false`.                                         |
 | `open`                  | `boolean`             | Whether to open chat on page load. By default `false`.                                           |
+| `allowedResourceOrigins` | `string[]`          | Origins that bot messages may load images and chart data from. Same-origin and `data:` URLs are always allowed; `['*']` allows any origin. By default only same-origin. |
 
 ### Events
 
@@ -209,6 +210,25 @@ Your assistant will appear as an elegant chat widget on your page:
 | `onChatDelete` | The callback function to handle chat deletion.  |
 | `onChatOpen`   | The callback function to handle open chat       |
 | `onChatClose`  | The callback function to handle close chat      |
+
+### Chat history
+
+Chats are stored in the browser's `localStorage` and shown in the history panel. Clear them when the user logs out, especially on shared devices:
+
+```javascript
+import { clearChatHistory } from '@dynamiq/assistant/react'; // or '@dynamiq/assistant/vanilla'
+
+clearChatHistory();
+```
+
+With the vanilla widget you can also call `widget.clearHistory()`, which additionally resets the open chat.
+
+## 🔒 Security
+
+- **The endpoint is public.** With Endpoint Authorization disabled, anyone who finds the API URL in your page can call the agent directly. Don't put secrets in `api.headers`, since they are shipped to every visitor. For production, consider proxying requests through your own backend, which can authenticate users and apply rate limits.
+- **Bot messages are sanitized.** Markdown from the agent is rendered through DOMPurify, links only allow `http(s)`/`mailto` and open in a new tab, and charts run without `eval` (compatible with a CSP that has no `'unsafe-eval'`).
+- **Remote resources are blocked by default.** Images and chart data in bot messages are only loaded from your own origin unless you list other origins in `allowedResourceOrigins`. This stops a prompt-injected response from leaking conversation data through an image URL.
+- **Your own HTML options are not sanitized.** `title`, `footerText`, `poweredBy`, `humanSupport` and `prompts[].icon` are inserted as HTML. Only pass trusted content.
 
 ## 🤝 Contributing
 

@@ -42,6 +42,10 @@ export class ChatWidget {
     this.instance?.addMessage(message);
   }
 
+  public clearHistory(): void {
+    this.instance?.clearHistory();
+  }
+
   public destroy(): void {
     if (this.instance) {
       this.instance.destroy();
