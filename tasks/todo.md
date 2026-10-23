@@ -132,9 +132,9 @@ Standard verification for every task: `npm test`, `npm run build`, `npm run lint
 **Description:** Message IDs → `crypto.randomUUID()`. Feedback on the message at index 0 must not use `.at(-1)`. Replace `keypress` with `keydown`; ignore Enter when `shiftKey` or `isComposing` is set.
 
 **Acceptance criteria:**
-- [ ] User and bot messages never share an ID (test with mocked `Date.now`)
-- [ ] Feedback on the first message passes `[undefined/previous user msg, assistant]` correctly
-- [ ] Shift+Enter inserts a newline; IME composition Enter doesn't send
+- [x] User and bot messages never share an ID (test with mocked `Date.now`)
+- [x] Feedback passes `[nearest previous user message, assistant]`, or `[assistant]` when there is none
+- [x] Shift+Enter inserts a newline; IME composition Enter doesn't send
 
 **Verification:** tests; manual typing check.
 **Dependencies:** T1

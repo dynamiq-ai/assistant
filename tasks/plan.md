@@ -77,7 +77,7 @@ T12 Docs/CI hygiene (last)
 ### Phase 3: Storage & correctness
 - [x] Task 7: Storage — persist anonymous userId, global cleanup, quota-safe writes, `clearHistory()`
 - [x] Task 8: Contract images — match by attribute, clear stale IDs, finalize non-streaming
-- [ ] Task 9: Small bugs — UUID message IDs, first-message feedback, Enter/IME handling
+- [x] Task 9: Small bugs — UUID message IDs, first-message feedback, Enter/IME handling
 - [ ] Task 10: `destroy()` — abort fetch, remove external listener, revoke object URLs
 
 ### Checkpoint C

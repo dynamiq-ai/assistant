@@ -342,8 +342,11 @@ export class ChatWidgetCore {
         if (assistantMessageIndex === -1) {
           return;
         }
-        const assistantMessage = this.messages.at(assistantMessageIndex)!;
-        const userMessage = this.messages.at(assistantMessageIndex - 1)!;
+        const assistantMessage = this.messages[assistantMessageIndex];
+        const userMessage = this.messages
+          .slice(0, assistantMessageIndex)
+          .reverse()
+          .find((m) => m.sender === 'user');
         const feedback = target.dataset.feedback as 'positive' | 'negative';
 
         // Capture previous feedback state before updating
@@ -398,7 +401,7 @@ export class ChatWidgetCore {
         this.options.onFeedback?.(
           e,
           feedback,
-          [userMessage, assistantMessage],
+          userMessage ? [userMessage, assistantMessage] : [assistantMessage],
           this.params,
           prevFeedbackState,
           containerId
@@ -444,8 +447,12 @@ export class ChatWidgetCore {
       '.chat-widget-input textarea'
     );
     if (input) {
-      input.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter' && input.value.trim()) {
+      input.addEventListener('keydown', (e) => {
+        // Shift+Enter adds a new line; Enter during IME composition confirms a candidate
+        if (e.key !== 'Enter' || e.shiftKey || e.isComposing) {
+          return;
+        }
+        if (input.value.trim()) {
           e.preventDefault();
           this.sendMessage(input.value);
           resizeInput(input, INPUT_V_PADDING, MAX_INPUT_HEIGHT);
@@ -656,7 +663,7 @@ export class ChatWidgetCore {
     }
 
     const message: ChatMessage = {
-      id: Date.now().toString(),
+      id: crypto.randomUUID(),
       text: text.trim(),
       sender: 'user',
       timestamp: Date.now(),
@@ -1090,7 +1097,7 @@ export class ChatWidgetCore {
     text: string,
     streaming?: boolean
   ): ((message: string) => void) | void {
-    const messageId = Date.now().toString();
+    const messageId = crypto.randomUUID();
     const botMessage: ChatMessage = {
       id: messageId,
       text,
