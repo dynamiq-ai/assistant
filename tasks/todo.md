@@ -119,9 +119,9 @@ Standard verification for every task: `npm test`, `npm run build`, `npm run lint
 **Description:** Match resolved URLs to DOM by `data-contract` (as `applyStoredImages` does) instead of by index. Collect contracts per message, so re-rendering history doesn't leak IDs into the next request. Call the finalize path for non-streaming responses too.
 
 **Acceptance criteria:**
-- [ ] Repeated contract IDs and report cards get the correct images (test)
-- [ ] Loading a history chat and then sending a message calls `onImageBlock` with only the new message's IDs
-- [ ] Non-streaming responses resolve images and persist `processedImages`
+- [x] Repeated contract IDs and report cards get the correct images (test)
+- [x] Loading a history chat and then sending a message calls `onImageBlock` with only the new message's IDs
+- [x] Non-streaming responses resolve images and persist `processedImages`
 
 **Verification:** tests; manual with an `onImageBlock` stub in the example.
 **Dependencies:** T2

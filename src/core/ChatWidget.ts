@@ -34,7 +34,6 @@ export class ChatWidgetCore {
   private params: CustomParams;
   private storage: Storage;
   private abortController: AbortController | null = null;
-  private pendingContracts: Set<string> = new Set();
   private readonly renderMarkdown: (text: string) => string;
   private manageToggleLabel: boolean = true;
   private progressMessageInterval: NodeJS.Timeout | null = null;
@@ -85,9 +84,7 @@ export class ChatWidgetCore {
       () => !!this.abortController
     );
 
-    this.renderMarkdown = createMarkdownRenderer(this.options, (contract) =>
-      this.pendingContracts.add(contract)
-    );
+    this.renderMarkdown = createMarkdownRenderer(this.options);
     this.init();
     if (this.options.fullScreen) {
       this.toggleFullScreen();
@@ -97,66 +94,45 @@ export class ChatWidgetCore {
     }
   }
 
-  private async processContractImages(messageId: string): Promise<void> {
-    if (this.pendingContracts.size === 0 || !this.options.onImageBlock) {
+  /**
+   * Resolve the contract images of a finished bot message via onImageBlock,
+   * then show them and keep the URLs on the message for history.
+   */
+  private async processContractImages(message: ChatMessage): Promise<void> {
+    if (!this.options.onImageBlock) {
       return;
     }
 
-    // Collect all contract IDs as array
-    const contractIds = Array.from(this.pendingContracts);
+    const containers = this.widgetElement?.querySelectorAll(
+      `#chat-message-${message.id} .chat-message-image-link-container[data-contract]`
+    );
+    const contractIds = [
+      ...new Set(
+        [...(containers ?? [])]
+          .map((container) => container.getAttribute('data-contract'))
+          .filter((contract): contract is string => !!contract)
+      ),
+    ];
+    if (contractIds.length === 0) {
+      return;
+    }
 
     try {
-      // Call onImageBlock with array of contract IDs (now async)
       const result = await this.options.onImageBlock(contractIds);
-
       // Handle both single string and array of strings
       const imageUrls = Array.isArray(result) ? result : [result];
 
-      // Store processed images in message data
-      const lastMessage = this.messages.find((m) => m.id === messageId);
-      if (lastMessage && imageUrls.length > 0) {
-        if (!lastMessage.processedImages) {
-          lastMessage.processedImages = {};
+      message.processedImages = message.processedImages ?? {};
+      contractIds.forEach((contractId, index) => {
+        if (imageUrls[index]) {
+          message.processedImages![contractId] = imageUrls[index];
         }
-        // Map contract IDs to image URLs
-        contractIds.forEach((contractId, index) => {
-          if (index < imageUrls.length && imageUrls[index]) {
-            lastMessage.processedImages![contractId] = imageUrls[index];
-          }
-        });
-      }
-
-      // Update images in the DOM
-      if (imageUrls.length > 0) {
-        const allImageContainers = this.widgetElement?.querySelectorAll(
-          `#chat-message-${messageId} .chat-message-image-link-container[data-contract-id]`
-        );
-
-        allImageContainers?.forEach((containerElement, index) => {
-          if (index < imageUrls.length) {
-            const imgElement =
-              containerElement?.querySelector<HTMLImageElement>(
-                '.chat-contract-image[data-loading="true"]'
-              );
-
-            if (imgElement && imageUrls[index]) {
-              imgElement.src = imageUrls[index];
-              imgElement.style.display = '';
-              imgElement.removeAttribute('data-loading');
-              imgElement.classList.add('chat-contract-image-loaded');
-            }
-          }
-        });
-      }
+      });
+      this.applyStoredImages(message);
     } catch (error) {
       console.error('Error processing contract images:', error);
-      // Optionally show error state in UI
-      const allImageContainers = this.widgetElement?.querySelectorAll(
-        `#chat-message-${messageId} .chat-message-image-link-container[data-contract-id]`
-      );
-
-      allImageContainers?.forEach((containerElement) => {
-        const imgElement = containerElement?.querySelector<HTMLImageElement>(
+      containers?.forEach((container) => {
+        const imgElement = container.querySelector<HTMLImageElement>(
           '.chat-contract-image[data-loading="true"]'
         );
         if (imgElement) {
@@ -165,9 +141,6 @@ export class ChatWidgetCore {
         }
       });
     }
-
-    // Clear pending contracts for this message
-    this.pendingContracts.clear();
   }
 
   private init(): void {
@@ -947,6 +920,7 @@ export class ChatWidgetCore {
 
         if (data.output) {
           this.addBotMessage(data.output);
+          await this.finalizeLastMessage();
         } else {
           this.addBotMessage(
             "I received your message but I don't have a response."
@@ -984,8 +958,8 @@ export class ChatWidgetCore {
     // Mark the message as complete
     lastMessage.isComplete = true;
 
-    // Process pending contracts and update images (now async)
-    await this.processContractImages(lastMessage.id);
+    // Resolve contract images now that the message text is final
+    await this.processContractImages(lastMessage);
 
     // update the message in the history
     const chats = this.storage.getChats();
@@ -1472,9 +1446,6 @@ export class ChatWidgetCore {
 
     // Clear all messages
     this.messages.length = 0;
-
-    // Clear pending contracts
-    this.pendingContracts.clear();
 
     // Stop any ongoing progress message rotation
     this.stopProgressMessageRotation();

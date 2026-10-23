@@ -2,13 +2,17 @@ import { createMarkdownRenderer } from '../markdown';
 
 const render = (
   text: string,
-  options: Parameters<typeof createMarkdownRenderer>[0] = {},
-  onContract: (contract: string) => void = () => {}
+  options: Parameters<typeof createMarkdownRenderer>[0] = {}
 ) => {
   const el = document.createElement('div');
-  el.innerHTML = createMarkdownRenderer(options, onContract)(text);
+  el.innerHTML = createMarkdownRenderer(options)(text);
   return el;
 };
+
+const contracts = (el: HTMLElement) =>
+  [...el.querySelectorAll('[data-contract]')].map((c) =>
+    c.getAttribute('data-contract')
+  );
 
 describe('createMarkdownRenderer', () => {
   it('renders basic markdown with line breaks', () => {
@@ -48,27 +52,24 @@ describe('createMarkdownRenderer', () => {
     );
   });
 
-  it('collects contract ids from image blocks and inline image codespans', () => {
-    const contracts: string[] = [];
+  it('renders contract containers for image blocks and inline image codespans', () => {
     const el = render(
       '```image\n{"contract":"c-1"}\n```\n\ntext `image{"contract":"c-2"}`',
-      { onImageBlock: async () => [] },
-      (c) => contracts.push(c)
+      { onImageBlock: async () => [] }
     );
 
-    expect(contracts).toEqual(['c-1', 'c-2']);
-    expect(el.querySelectorAll('[data-contract]')).toHaveLength(2);
+    expect(contracts(el)).toEqual(['c-1', 'c-2']);
   });
 
   it('skips image blocks whose contract is N/A', () => {
-    const contracts: string[] = [];
-    render('```image\n{"contract":"N/A"}\n```', {}, (c) => contracts.push(c));
+    const el = render('```image\n{"contract":"N/A"}\n```', {
+      onImageBlock: async () => [],
+    });
 
-    expect(contracts).toEqual([]);
+    expect(contracts(el)).toEqual([]);
   });
 
   it('renders report blocks as manager and direct report cards', () => {
-    const contracts: string[] = [];
     const el = render(
       '```report\n' +
         JSON.stringify({
@@ -78,15 +79,14 @@ describe('createMarkdownRenderer', () => {
           directReports: [{ name: 'Bob', role: 'Dev', contractId: 'r-1' }],
         }) +
         '\n```',
-      {},
-      (c) => contracts.push(c)
+      { onImageBlock: async () => [] }
     );
 
     const names = [...el.querySelectorAll('.chat-message-report-name')].map(
       (n) => n.textContent
     );
     expect(names).toEqual(['Ann', 'Bob']);
-    expect(contracts).toEqual(['m-1', 'r-1']);
+    expect(contracts(el)).toEqual(['m-1', 'r-1']);
   });
 
   it('renders flag codespans as an image and country name', () => {
@@ -103,8 +103,8 @@ describe('createMarkdownRenderer', () => {
   });
 
   it('keeps renderer state separate per instance', () => {
-    const red = createMarkdownRenderer({ theme: { primaryColor: 'red' } }, () => {});
-    createMarkdownRenderer({ theme: { primaryColor: 'blue' } }, () => {});
+    const red = createMarkdownRenderer({ theme: { primaryColor: 'red' } });
+    createMarkdownRenderer({ theme: { primaryColor: 'blue' } });
 
     const el = document.createElement('div');
     el.innerHTML = red('```chart\n{"mark":"bar"}\n```');
@@ -215,7 +215,7 @@ describe('createMarkdownRenderer sanitizing', () => {
     ['event handler on div', '<div onmouseover="alert(1)">hover</div>'],
     ['form action', '<form action="https://evil.test"><button>go</button></form>'],
   ])('removes %s from raw HTML', (_, payload) => {
-    const html = createMarkdownRenderer({}, () => {})(`hello ${payload}`);
+    const html = createMarkdownRenderer({})(`hello ${payload}`);
 
     expect(html).not.toMatch(/onerror|onload|onmouseover|<script|<iframe|<form|javascript:/i);
   });
