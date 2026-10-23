@@ -72,9 +72,9 @@ export class ChatWidgetCore {
     };
 
     this.params = {
-      userId: crypto.randomUUID(),
-      sessionId: crypto.randomUUID(),
       ...options.params,
+      userId: options.params?.userId ?? Storage.getAnonymousUserId(),
+      sessionId: options.params?.sessionId ?? crypto.randomUUID(),
     };
     Storage.userId = this.params.userId;
     this.apiConfig = this.options.api;
@@ -1451,6 +1451,20 @@ export class ChatWidgetCore {
       clearInterval(this.relativeTimeInterval);
     }
     this.stopProgressMessageRotation();
+  }
+
+  /**
+   * Delete all stored chat history (e.g. on logout) and start a new chat
+   */
+  public clearHistory(): void {
+    this.abortController?.abort();
+    this.storage.clear();
+    if (!this.options.params?.userId) {
+      this.params.userId = Storage.getAnonymousUserId();
+      Storage.userId = this.params.userId;
+    }
+    this.historyPanel.refreshFromStorage();
+    this.startNewChat();
   }
 
   public startNewChat(): void {

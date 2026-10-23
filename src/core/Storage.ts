@@ -1,6 +1,7 @@
 import { HistoryChat } from './types';
 
 const STORAGE_KEY = 'chats_history';
+const ANONYMOUS_USER_ID_KEY = 'dynamiq_assistant_user_id';
 const MAX_STORAGE_SIZE = 4.5 * 1024 * 1024; // 4.5MB (leaving some buffer for other data)
 
 export class Storage {
@@ -19,58 +20,55 @@ export class Storage {
     return Storage.instance;
   }
 
-  private getStorageSize(): number {
-    let total = 0;
-    for (let i = 0; i < this.storage.length; i++) {
-      const key = this.storage.key(i);
-      if (key) {
-        const value = this.storage.getItem(key);
-        if (value) {
-          total += (key.length + value.length) * 2;
+  /**
+   * A user id that survives reloads, for hosts that don't pass `params.userId`
+   */
+  public static getAnonymousUserId(): string {
+    const storage = Storage.getInstance().storage;
+    let userId = storage.getItem(ANONYMOUS_USER_ID_KEY);
+    if (!userId) {
+      userId = crypto.randomUUID();
+      try {
+        storage.setItem(ANONYMOUS_USER_ID_KEY, userId);
+      } catch (e) {
+        console.warn('Failed to persist anonymous user id:', e);
+      }
+    }
+    return userId;
+  }
+
+  /**
+   * Save chats, dropping the oldest ones (of any user) until they fit within
+   * MAX_STORAGE_SIZE and the browser quota. The chat with `keepSessionId` is
+   * never dropped. Never throws: failing to save history must not break chat.
+   */
+  private saveChats(chats: HistoryChat[], keepSessionId?: string): void {
+    const remaining = [...chats];
+    const oldestFirst = [...chats]
+      .filter((chat) => chat.sessionId !== keepSessionId)
+      .sort((a, b) => a.updatedAt - b.updatedAt);
+
+    for (;;) {
+      const data = JSON.stringify(remaining);
+      // localStorage stores UTF-16, 2 bytes per character
+      if ((STORAGE_KEY.length + data.length) * 2 <= MAX_STORAGE_SIZE) {
+        try {
+          this.storage.setItem(STORAGE_KEY, data);
+          return;
+        } catch (e) {
+          if (!oldestFirst.length) {
+            console.warn('Failed to save chat history:', e);
+            return;
+          }
         }
       }
-    }
-    return total;
-  }
-
-  private getItemSize(key: string, value: string): number {
-    return (key.length + value.length) * 2;
-  }
-
-  private cleanupOldData(): void {
-    const userChats = this.getChats();
-    const allChats = this.getAllChats();
-
-    if (!userChats.length) {
-      return;
-    }
-
-    // Sort user chats by updatedAt in ascending order (oldest first)
-    const sortedUserChats = [...userChats].sort(
-      (a, b) => a.updatedAt - b.updatedAt
-    );
-
-    let currentSize = this.getStorageSize();
-
-    // Remove oldest user chats until we have enough space
-    const chatsToRemove = new Set<string>();
-    while (currentSize > MAX_STORAGE_SIZE && sortedUserChats.length > 0) {
-      const removedChat = sortedUserChats.shift();
-      if (removedChat) {
-        chatsToRemove.add(removedChat.sessionId);
-        const removedSize = this.getItemSize(
-          STORAGE_KEY,
-          JSON.stringify([removedChat])
-        );
-        currentSize -= removedSize;
+      const oldest = oldestFirst.shift();
+      if (!oldest) {
+        console.warn('Chat history is too large to save');
+        return;
       }
+      remaining.splice(remaining.indexOf(oldest), 1);
     }
-
-    // Filter out removed chats from all chats and save
-    const remainingChats = allChats.filter(
-      (chat) => !chatsToRemove.has(chat.sessionId)
-    );
-    this.storage.setItem(STORAGE_KEY, JSON.stringify(remainingChats));
   }
 
   private getAllChats(): HistoryChat[] {
@@ -94,16 +92,7 @@ export class Storage {
   }
 
   public addChat(chat: HistoryChat): void {
-    const allChats = this.getAllChats();
-    const newAllChats = [chat, ...allChats];
-    const newData = JSON.stringify(newAllChats);
-    const newDataSize = this.getItemSize(STORAGE_KEY, newData);
-
-    if (newDataSize > MAX_STORAGE_SIZE) {
-      this.cleanupOldData();
-    }
-
-    this.storage.setItem(STORAGE_KEY, newData);
+    this.saveChats([chat, ...this.getAllChats()], chat.sessionId);
   }
 
   public updateChat(chat: HistoryChat): void {
@@ -112,26 +101,28 @@ export class Storage {
 
     if (index !== -1) {
       allChats[index] = chat;
-      const newData = JSON.stringify(allChats);
-      const newDataSize = this.getItemSize(STORAGE_KEY, newData);
-
-      if (newDataSize > MAX_STORAGE_SIZE) {
-        this.cleanupOldData();
-      }
-
-      this.storage.setItem(STORAGE_KEY, newData);
+      this.saveChats(allChats, chat.sessionId);
     }
   }
 
   public removeChat(sessionId: string): void {
     const allChats = this.getAllChats();
-    const filteredChats = allChats.filter(
-      (chat) => chat.sessionId !== sessionId
-    );
-    this.storage.setItem(STORAGE_KEY, JSON.stringify(filteredChats));
+    this.saveChats(allChats.filter((chat) => chat.sessionId !== sessionId));
   }
 
+  /**
+   * Remove all stored chats of every user and the anonymous user id
+   */
   public clear(): void {
     this.storage.removeItem(STORAGE_KEY);
+    this.storage.removeItem(ANONYMOUS_USER_ID_KEY);
   }
+}
+
+/**
+ * Delete all chat history stored by the widget in this browser,
+ * e.g. when the user logs out
+ */
+export function clearChatHistory(): void {
+  Storage.getInstance().clear();
 }

@@ -179,7 +179,7 @@ Your assistant will appear as an elegant chat widget on your page:
 | `maxFileSize`           | `number`              | The maximum file size for file uploads in bytes.                                                 |
 | `acceptedFileTypes`     | `string`              | The accepted file types for file uploads.                                                        |
 | `params`                | `object`              | The parameters to pass to the assistant input.                                                   |
-| `params.userId`         | `string`              | The user ID. By default `crypto.randomUUID()`.                                                   |
+| `params.userId`         | `string`              | The user ID. By default a random ID that is kept in `localStorage`, so history survives reloads. |
 | `params.sessionId`      | `string`              | The session ID. By default `crypto.randomUUID()`.                                                |
 | `toggleButton`          | `string`              | The ID of the button to toggle the assistant.                                                    |
 | `prompts`               | `array`               | The prompts to show in the assistant.                                                            |
@@ -210,6 +210,18 @@ Your assistant will appear as an elegant chat widget on your page:
 | `onChatDelete` | The callback function to handle chat deletion.  |
 | `onChatOpen`   | The callback function to handle open chat       |
 | `onChatClose`  | The callback function to handle close chat      |
+
+### Chat history
+
+Chats are stored in the browser's `localStorage` and shown in the history panel. Clear them when the user logs out, especially on shared devices:
+
+```javascript
+import { clearChatHistory } from '@dynamiq/assistant/react'; // or '@dynamiq/assistant/vanilla'
+
+clearChatHistory();
+```
+
+With the vanilla widget you can also call `widget.clearHistory()`, which additionally resets the open chat.
 
 ## 🤝 Contributing
 

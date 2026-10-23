@@ -106,9 +106,9 @@ Standard verification for every task: `npm test`, `npm run build`, `npm run lint
 **Description:** Persist the generated anonymous `userId` (a localStorage key) so history survives reloads. `cleanupOldData` considers all users' chats, oldest first. Wrap `setItem` in try/catch: on `QuotaExceededError`, clean up and retry once, then degrade quietly (no throw into `sendMessage`). Add a public `clearHistory()` to the core and both wrappers.
 
 **Acceptance criteria:**
-- [ ] Reloading without a `userId` param shows previous chats
-- [ ] A filled localStorage (mocked quota throw) never breaks sending a message
-- [ ] `clearHistory()` removes all of the widget's data; documented in README
+- [x] Reloading without a `userId` param shows previous chats
+- [x] A filled localStorage (mocked quota throw) never breaks sending a message
+- [x] `clearHistory()` removes all of the widget's data; documented in README (plus standalone `clearChatHistory()` export for React)
 
 **Verification:** unit tests for `Storage`; manual reload test.
 **Dependencies:** T1
