@@ -81,10 +81,10 @@ T12 Docs/CI hygiene (last)
 - [x] Task 10: `destroy()` — abort fetch, remove external listener, revoke object URLs
 
 ### Checkpoint C
-- [ ] All tests pass; manual run of streaming + non-streaming + history reload + StrictMode remount
+- [x] All tests pass; manual run of streaming + history reload in browser; non-streaming + remount covered by tests
 
 ### Phase 4: Performance & hygiene
-- [ ] Task 11: Render charts only once the message is final; finalize Vega views; send chat_history only once
+- [x] Task 11: Render charts only once the message is final; finalize Vega views (chat_history de-duplication deferred — needs backend confirmation, see Open Questions)
 - [ ] Task 12: README auth guidance, prompt-text `textContent`, CI `npm ci`/actions v4, eslint react version
 
 ### Checkpoint D
@@ -102,6 +102,9 @@ T12 Docs/CI hygiene (last)
 | Persisting the anonymous userId changes history visibility for existing users | Low | Only affects hosts that don't pass `userId`; it's the intended behavior (history currently invisible) |
 
 ## Open Questions
+- **chat_history request shape (from Task 11)** — history is sent both as a form field and inside `input`, and includes the
+  current message, empty bot placeholders and error strings. Trimming it changes what the backend receives,
+  so it needs confirmation of which field the Dynamiq endpoint reads before changing it.
 
 1. **Customer-specific code** — the hardcoded `public-assets-rp` S3 flag URL, the `Photo/Documents`
    string stripping, and the report-card colors. Move them behind options (breaking for that customer),

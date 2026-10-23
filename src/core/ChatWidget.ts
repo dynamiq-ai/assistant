@@ -37,8 +37,9 @@ export class ChatWidgetCore {
   private readonly renderMarkdown: (text: string) => string;
   private manageToggleLabel: boolean = true;
   private readonly handleToggleClick = () => this.toggle();
-  // Object URLs of attachment previews, revoked when their messages are removed
+  // Resources of rendered messages, released when the messages are removed
   private objectUrls: string[] = [];
+  private chartViews: { finalize(): void }[] = [];
   private progressMessageInterval: NodeJS.Timeout | null = null;
   private progressMessages: string[] = [
     'Sharpening my virtual pencil…',
@@ -968,6 +969,13 @@ export class ChatWidgetCore {
     // Mark the message as complete
     lastMessage.isComplete = true;
 
+    const messageElement = this.widgetElement?.querySelector<HTMLElement>(
+      `#chat-message-${lastMessage.id}`
+    );
+    if (messageElement) {
+      this.renderVegaChartsInElement(messageElement);
+    }
+
     // Resolve contract images now that the message text is final
     await this.processContractImages(lastMessage);
 
@@ -1143,9 +1151,8 @@ export class ChatWidgetCore {
         } else {
           message.classList.remove('chat-message--full-width');
         }
-
-        // After setting innerHTML, find and render charts
-        this.renderVegaChartsInElement(textElement as HTMLElement);
+        // Charts are embedded once the message is complete (finalizeLastMessage),
+        // not on every streamed chunk
       } else {
         textElement.textContent = text;
       }
@@ -1361,6 +1368,10 @@ export class ChatWidgetCore {
     );
 
     chartDivs.forEach(async (chartDiv) => {
+      if (chartDiv.dataset.rendered) {
+        return;
+      }
+      chartDiv.dataset.rendered = 'true';
       const chartId = chartDiv.id;
       const specString = chartDiv.getAttribute('data-chart-spec');
       if (specString) {
@@ -1370,11 +1381,12 @@ export class ChatWidgetCore {
           // We need to unescape it if vegaEmbed expects a raw string, or parse if it expects an object.
           // vegaEmbed can take a string spec.
           const chartSpec = JSON.parse(specString);
-          await embedChart(
+          const { view } = await embedChart(
             chartDiv,
             chartSpec,
             this.options.allowedResourceOrigins
           );
+          this.chartViews.push(view);
         } catch {
           chartDiv.innerHTML = 'Error rendering chart data.';
         }
@@ -1427,9 +1439,11 @@ export class ChatWidgetCore {
     }
   }
 
-  private revokeObjectUrls(): void {
+  private releaseMessageResources(): void {
     this.objectUrls.forEach((url) => URL.revokeObjectURL(url));
     this.objectUrls = [];
+    this.chartViews.forEach((view) => view.finalize());
+    this.chartViews = [];
   }
 
   public destroy(): void {
@@ -1438,7 +1452,7 @@ export class ChatWidgetCore {
       'click',
       this.handleToggleClick
     );
-    this.revokeObjectUrls();
+    this.releaseMessageResources();
     if (this.widgetElement && this.container.contains(this.widgetElement)) {
       this.container.removeChild(this.widgetElement);
     }
@@ -1478,7 +1492,7 @@ export class ChatWidgetCore {
     if (messagesContainer) {
       messagesContainer.innerHTML = '';
     }
-    this.revokeObjectUrls();
+    this.releaseMessageResources();
 
     this.hideMessagesContainer();
     this.showWelcomeScreen();
@@ -1598,7 +1612,7 @@ export class ChatWidgetCore {
       if (messagesContainer) {
         messagesContainer.innerHTML = '';
       }
-      this.revokeObjectUrls();
+      this.releaseMessageResources();
       // how to keep order of messages
       for (const message of this.messages) {
         // skip empty messages since they are meaningless

@@ -6,3 +6,9 @@ if (!globalThis.crypto?.randomUUID) {
     value: { ...globalThis.crypto, randomUUID },
   });
 }
+
+// jsdom lacks the streams API used to read streaming responses
+import { ReadableStream, TextDecoderStream } from 'node:stream/web';
+import { TextEncoder } from 'node:util';
+
+Object.assign(globalThis, { ReadableStream, TextDecoderStream, TextEncoder });

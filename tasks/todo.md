@@ -154,8 +154,8 @@ Standard verification for every task: `npm test`, `npm run build`, `npm run lint
 **Scope:** S
 
 ### Checkpoint C
-- [ ] Tests/build/lint clean
-- [ ] Manual: streaming, non-streaming, history reload, StrictMode remount
+- [x] Tests/build/lint clean
+- [x] Manual: streaming, history reload (browser); non-streaming, remount (tests)
 - [ ] Human review → merge Phase 3 PR
 
 ---
@@ -166,9 +166,9 @@ Standard verification for every task: `npm test`, `npm run build`, `npm run lint
 **Description:** While streaming, show charts as placeholders and embed them only in `finalizeLastMessage`. Call `view.finalize()` on replaced or destroyed charts. Send `chat_history` once (inside `input` only — confirm with the backend), excluding the current message, empty and error messages.
 
 **Acceptance criteria:**
-- [ ] `vegaEmbed` is called once per chart per message (test with mock)
-- [ ] The request body has no duplicate history and no current-message duplicate
-- [ ] No visible regression in chart display after streaming completes
+- [x] `vegaEmbed` is called once per chart per message (test with mock)
+- [ ] The request body has no duplicate history and no current-message duplicate — **deferred: needs backend confirmation**
+- [x] No visible regression in chart display after streaming completes
 
 **Verification:** tests; manual streaming of a chart answer.
 **Dependencies:** T6, T8
