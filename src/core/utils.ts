@@ -143,16 +143,17 @@ const SAFE_URL_SCHEMES = ['http', 'https', 'mailto'];
  * ("java\tscript:"), so they are stripped before checking.
  */
 export function safeUrl(url: string | null | undefined): string | null {
-  if (!url) {
+  const trimmed = url?.trim();
+  if (!trimmed) {
     return null;
   }
   // eslint-disable-next-line no-control-regex
-  const normalized = url.replace(/[\u0000-\u0020\u007f]/g, '');
+  const normalized = trimmed.replace(/[\u0000-\u0020\u007f]/g, '');
   const scheme = /^([a-z][a-z0-9+.-]*):/i.exec(normalized)?.[1];
   if (scheme && !SAFE_URL_SCHEMES.includes(scheme.toLowerCase())) {
     return null;
   }
-  return url.trim();
+  return trimmed;
 }
 
 /**

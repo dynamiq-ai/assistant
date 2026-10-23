@@ -188,29 +188,37 @@ export function createMarkdownRenderer(
   const purify = DOMPurify(window);
   purify.addHook('uponSanitizeAttribute', (node, data) => {
     const { attrName, attrValue } = data;
+    const isLink = ['A', 'AREA'].includes(node.nodeName.toUpperCase());
     if (attrName === 'style') {
       // url(), image-set() etc. load resources; CSS escapes can hide them
       data.keepAttr = !/\\|url|image|src/i.test(attrValue);
-    } else if (attrName === 'srcset') {
-      data.keepAttr = attrValue
-        .split(',')
-        .every((candidate) => isAllowed(candidate.trim().split(/\s+/)[0]));
-    } else if (
-      RESOURCE_ATTRIBUTES.includes(attrName) &&
-      !['A', 'AREA'].includes(node.nodeName.toUpperCase())
-    ) {
+    } else if (RESOURCE_ATTRIBUTES.includes(attrName) && !isLink) {
       data.keepAttr = isAllowed(attrValue);
+    } else if (
+      !/^(data|aria)-/.test(attrName) &&
+      !['alt', 'title', 'href'].includes(attrName) &&
+      /url\s*\(|\\/i.test(attrValue)
+    ) {
+      // SVG presentation attributes (fill, mask, clip-path, marker-*, ...)
+      // accept url() references, which the browser fetches
+      data.keepAttr = false;
     }
   });
   purify.addHook('afterSanitizeAttributes', (node) => {
     if (node.tagName === 'A' && node.hasAttribute('href')) {
-      node.setAttribute('target', '_blank');
-      node.setAttribute('rel', 'noopener noreferrer');
+      if (safeUrl(node.getAttribute('href'))) {
+        node.setAttribute('target', '_blank');
+        node.setAttribute('rel', 'noopener noreferrer');
+      } else {
+        node.removeAttribute('href');
+      }
     }
   });
 
   return (text: string) =>
     purify.sanitize(marked.parse(text, { async: false }) as string, {
       FORBID_TAGS: ['form', 'style'],
+      // Browsers split srcset candidates differently from any simple parser
+      FORBID_ATTR: ['srcset'],
     });
 }

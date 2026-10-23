@@ -315,3 +315,41 @@ describe('createMarkdownRenderer remote resources', () => {
     expect(img?.getAttribute('src')).toMatch(/flags\/de\.svg$/);
   });
 });
+
+describe('createMarkdownRenderer review hardening', () => {
+  it.each(['mask', 'fill', 'stroke', 'clip-path', 'marker-start', 'filter'])(
+    'drops SVG %s values that reference a URL',
+    (attr) => {
+      const el = render(`<svg><rect ${attr}="url(https://evil.test/x.svg#a)"></rect></svg>`);
+
+      expect(el.innerHTML).not.toContain('evil.test');
+    }
+  );
+
+  it('drops CSS-escaped url() in SVG attributes', () => {
+    const el = render('<svg><rect fill="\\75rl(https://evil.test/x)"></rect></svg>');
+
+    expect(el.innerHTML).not.toContain('evil.test');
+  });
+
+  it('keeps plain SVG presentation values', () => {
+    const el = render('<svg><rect fill="red" stroke="#000"></rect></svg>');
+
+    expect(el.querySelector('rect')?.getAttribute('fill')).toBe('red');
+  });
+
+  it('removes srcset, whose candidates browsers parse differently', () => {
+    const el = render(`<img srcset="${location.origin},@evil.test/x.png">`);
+
+    expect(el.querySelector('img')?.hasAttribute('srcset')).toBe(false);
+  });
+
+  it.each(['tel:123', 'sms:123', 'xmpp:a@b'])(
+    'removes %s hrefs from raw HTML links',
+    (href) => {
+      const link = render(`<a href="${href}">x</a>`).querySelector('a');
+
+      expect(link?.hasAttribute('href')).toBe(false);
+    }
+  );
+});

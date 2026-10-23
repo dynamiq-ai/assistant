@@ -41,3 +41,12 @@ describe('safeUrl', () => {
     expect(safeUrl(undefined)).toBeNull();
   });
 });
+
+describe('safeUrl whitespace handling', () => {
+  it.each(['\u00a0javascript:alert(1)', '\u2028javascript:alert(1)'])(
+    'rejects %j',
+    (url) => {
+      expect(safeUrl(url)).toBeNull();
+    }
+  );
+});
