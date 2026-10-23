@@ -1,15 +1,10 @@
 import vegaEmbed from 'vega-embed';
 import { ChatWidgetCore } from '../ChatWidget';
 import { HistoryChat } from '../types';
+import { flushPromises } from '../../test/utils';
 
 const mockedEmbed = vegaEmbed as unknown as jest.Mock;
 const CHART = '```chart\n{"mark":"bar"}\n```';
-
-const flush = async () => {
-  for (let i = 0; i < 10; i++) {
-    await new Promise((resolve) => setTimeout(resolve, 0));
-  }
-};
 
 const mockStreamingResponse = (chunks: string[]) => {
   global.fetch = jest.fn(async () => {
@@ -43,7 +38,7 @@ describe('chart rendering', () => {
     });
 
     widget.sendMessage('chart please');
-    await flush();
+    await flushPromises();
 
     expect(mockedEmbed).toHaveBeenCalledTimes(1);
     widget.destroy();
@@ -55,7 +50,7 @@ describe('chart rendering', () => {
     const widget = new ChatWidgetCore(document.createElement('div'), {});
 
     widget.addBotMessage(CHART);
-    await flush();
+    await flushPromises();
     widget.startNewChat();
 
     expect(finalize).toHaveBeenCalledTimes(1);
@@ -78,7 +73,7 @@ describe('chart rendering', () => {
     const widget = new ChatWidgetCore(container, { params: { userId: 'u' } });
 
     container.querySelector<HTMLElement>('.chat-widget-history-chat')!.click();
-    await flush();
+    await flushPromises();
 
     expect(mockedEmbed).toHaveBeenCalledTimes(2);
     widget.destroy();

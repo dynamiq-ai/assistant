@@ -1,11 +1,6 @@
 import { ChatWidgetCore } from '../ChatWidget';
 import { HistoryChat } from '../types';
-
-const flush = async () => {
-  for (let i = 0; i < 10; i++) {
-    await new Promise((resolve) => setTimeout(resolve, 0));
-  }
-};
+import { flushPromises } from '../../test/utils';
 
 const mockJsonResponse = (output: string) => {
   global.fetch = jest.fn(async () => ({
@@ -34,7 +29,7 @@ describe('contract images', () => {
     });
 
     widget.sendMessage('show');
-    await flush();
+    await flushPromises();
 
     expect(onImageBlock).toHaveBeenCalledWith(['c-1', 'c-2']);
     expect(imageSrcs(container, 'c-1')).toEqual(['/img/c-1.png', '/img/c-1.png']);
@@ -51,7 +46,7 @@ describe('contract images', () => {
     });
 
     widget.sendMessage('show');
-    await flush();
+    await flushPromises();
 
     const [chat] = JSON.parse(localStorage.getItem('chats_history')!) as HistoryChat[];
     expect(chat.messages[1].processedImages).toEqual({ 'c-1': '/img/c-1.png' });
@@ -80,9 +75,9 @@ describe('contract images', () => {
     });
 
     container.querySelector<HTMLElement>('.chat-widget-history-chat')!.click();
-    await flush();
+    await flushPromises();
     widget.sendMessage('next');
-    await flush();
+    await flushPromises();
 
     expect(onImageBlock).toHaveBeenCalledTimes(1);
     expect(onImageBlock).toHaveBeenCalledWith(['c-new']);

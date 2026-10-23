@@ -1,4 +1,5 @@
 import { ChatWidgetCore } from '../core/ChatWidget';
+import { sleep } from './utils';
 
 describe('test setup', () => {
   it('mounts the widget into a jsdom container', () => {
@@ -18,7 +19,7 @@ describe('markdown rendering', () => {
     const widget = new ChatWidgetCore(container, {});
 
     widget.addBotMessage('**bold**');
-    await new Promise((resolve) => setTimeout(resolve));
+    await sleep();
 
     expect(container.querySelector('.chat-message-bot strong')?.textContent).toBe(
       'bold'
@@ -38,7 +39,7 @@ describe('bot message rendering', () => {
     const update = widget.addBotMessage('', true) as (m: string) => void;
     update(`streamed ${PAYLOAD}`);
     widget.addBotMessage(`complete ${PAYLOAD}`);
-    await new Promise((resolve) => setTimeout(resolve));
+    await sleep();
 
     expect(container.querySelectorAll('.chat-message-bot')).toHaveLength(2);
     expect(container.querySelector('[onerror]')).toBeNull();
