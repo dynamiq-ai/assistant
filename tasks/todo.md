@@ -11,9 +11,9 @@ Standard verification for every task: `npm test`, `npm run build`, `npm run lint
 **Description:** Configure the existing devDependencies (jest 28, ts-jest, jest-environment-jsdom) so `npm test` runs TypeScript tests against the DOM. Prove that ESM deps (`marked`) load.
 
 **Acceptance criteria:**
-- [ ] `jest.config.cjs` with ts-jest preset, jsdom environment, CSS import mocked (`moduleNameMapper` for `\.css$`)
-- [ ] A smoke test renders markdown via `marked` and passes
-- [ ] `vega-embed` mocked by default in tests
+- [x] `jest.config.cjs` with ts-jest preset, jsdom environment, CSS import mocked (`moduleNameMapper` for `\.css$`)
+- [x] A smoke test renders markdown via `marked` and passes
+- [x] `vega-embed` mocked by default in tests
 
 **Verification:** `npm test` green; `npm run build` unaffected.
 **Dependencies:** None

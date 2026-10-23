@@ -56,7 +56,7 @@ T12 Docs/CI hygiene (last)
 ## Task List
 
 ### Phase 1: XSS fix (one PR: `fix: sanitize bot markdown output`)
-- [ ] Task 1: Jest + jsdom test setup
+- [x] Task 1: Jest + jsdom test setup
 - [ ] Task 2: Extract markdown pipeline to `markdown.ts` with a per-instance `Marked`
 - [ ] Task 3: Escape model data in custom renderers
 - [ ] Task 4: Sanitize rendered HTML with DOMPurify
