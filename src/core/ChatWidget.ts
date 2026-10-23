@@ -5,29 +5,20 @@ import {
   CustomParams,
   HistoryChat,
   ContentTypes,
-  ReportPerson,
 } from './types';
 import { createParser, type EventSourceMessage } from 'eventsource-parser';
 import './styles.css';
 import {
   getRelativeTimeString,
   processMessageText,
-  renderImageAndLink,
   resizeInput,
-  updateChartCode,
 } from './utils';
-import { marked, Renderer, type Tokens } from 'marked';
+import { createMarkdownRenderer } from './markdown';
 import HistoryPanel from './HistoryPanel';
 import { Storage } from './Storage';
 import vegaEmbed from 'vega-embed';
 import { ARIA_LABELS, INPUT_V_PADDING, MAX_INPUT_HEIGHT } from './constants';
 import { UIComponents } from './components/UIComponents';
-
-// Configure marked for safe rendering
-marked.setOptions({
-  gfm: true,
-  breaks: true,
-});
 
 export class ChatWidgetCore {
   private readonly container: HTMLElement;
@@ -44,6 +35,7 @@ export class ChatWidgetCore {
   private storage: Storage;
   private abortController: AbortController | null = null;
   private pendingContracts: Set<string> = new Set();
+  private readonly renderMarkdown: (text: string) => string;
   private manageToggleLabel: boolean = true;
   private progressMessageInterval: NodeJS.Timeout | null = null;
   private progressMessages: string[] = [
@@ -93,7 +85,9 @@ export class ChatWidgetCore {
       () => !!this.abortController
     );
 
-    this.setupMarkedRenderer();
+    this.renderMarkdown = createMarkdownRenderer(this.options, (contract) =>
+      this.pendingContracts.add(contract)
+    );
     this.init();
     if (this.options.fullScreen) {
       this.toggleFullScreen();
@@ -101,180 +95,6 @@ export class ChatWidgetCore {
     if (this.options.open) {
       this.open();
     }
-  }
-
-  private setupMarkedRenderer(): void {
-    const renderer = new Renderer();
-    const originalCodeRenderer = renderer.code.bind(renderer);
-    const originalCodespanRenderer = renderer.codespan.bind(renderer);
-    const originalTableImpl = Renderer.prototype.table;
-
-    renderer.link = ({ href, title, text }) => {
-      return `<a href="${href}"${
-        title ? ` title="${title}"` : ''
-      } target="_blank">${text}</a>`;
-    };
-
-    renderer.code = ({ text: code, lang: language, escaped }) => {
-      // Render organization report
-      if (language === 'report') {
-        try {
-          const reportInfo: ReportPerson = JSON.parse(code);
-          const managerName = reportInfo?.name || '';
-          const managerRole = reportInfo?.role || '';
-          const managerContractId = reportInfo?.contractId || '';
-          const directReports: ReportPerson[] = Array.isArray(
-            reportInfo?.directReports
-          )
-            ? (reportInfo.directReports as ReportPerson[])
-            : [];
-          const managerContractInfo = { contract: managerContractId };
-
-          this.storeContractInfo(managerContractInfo);
-
-          const managerCard = `<div class="chat-message-report-card chat-message-report-card-manager" data-contract-id="${managerContractId}">
-            <div class="chat-message-report-text">
-              <div class="chat-message-report-name">${managerName}</div>
-              <div class="chat-message-report-role">${managerRole}</div>
-            </div>
-            ${renderImageAndLink(this.options, managerContractInfo)}
-          </div>`;
-
-          const reportsCards = directReports
-            .map((rep: ReportPerson) => {
-              const repName = rep?.name || '';
-              const repRole = rep?.role || '';
-              const repContractId = rep?.contractId || '';
-              const repContractInfo = { contract: repContractId };
-
-              this.storeContractInfo(repContractInfo);
-
-              return `<div class="chat-message-report-card" data-contract-id="${repContractId}">
-                <svg class="chat-message-children-report-arrow" width="27" height="104" viewBox="0 0 27 104" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M26.3536 99.6464C26.5488 99.8417 26.5488 100.158 26.3536 100.354L23.1716 103.536C22.9763 103.731 22.6597 103.731 22.4645 103.536C22.2692 103.34 22.2692 103.024 22.4645 102.828L25.2929 100L22.4645 97.1716C22.2692 96.9763 22.2692 96.6597 22.4645 96.4645C22.6597 96.2692 22.9763 96.2692 23.1716 96.4645L26.3536 99.6464ZM1 0H1.5V96H1H0.5V0H1ZM5 100V99.5H26V100V100.5H5V100ZM1 96H1.5C1.5 97.933 3.067 99.5 5 99.5V100V100.5C2.51472 100.5 0.5 98.4853 0.5 96H1Z" fill="#783F8E"/>
-                </svg>
-                <div class="chat-message-report-text">
-                  <div class="chat-message-report-name">${repName}</div>
-                  <div class="chat-message-report-role">${repRole}</div>
-                </div>
-                ${renderImageAndLink(this.options, repContractInfo)}
-              </div>`;
-            })
-            .join('');
-
-          const childrenBlock = directReports.length
-            ? `<div class="chat-message-report-children">${reportsCards}</div>`
-            : '';
-
-          return `<div class="chat-message-report-container">${managerCard}${childrenBlock}</div>`;
-        } catch {
-          return 'Building report...';
-        }
-      }
-      //Render Vega charts
-      if (language === 'chart') {
-        try {
-          const initialCode = JSON.parse(code);
-          const primaryThemeColor =
-            this.options.theme?.primaryColor || '#6c5ce7';
-
-          const updatedCode = updateChartCode(initialCode, primaryThemeColor);
-
-          const chartId = `vega-chart-${Math.random()
-            .toString(36)
-            .substring(7)}`;
-          const escapedSpec = JSON.stringify(updatedCode)
-            .replace(/"/g, '&quot;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;');
-          return `<div class="chat-message-chart-container">
-          <div id="${chartId}" class="chat-message-chart" data-chart-spec="${escapedSpec}"></div>
-          </div>`;
-        } catch {
-          return 'Building chart...';
-        }
-      }
-      //Render code block images
-      if (language === 'image') {
-        try {
-          const imageInfo = JSON.parse(code);
-
-          if (imageInfo?.contract === 'N/A') {
-            return '';
-          }
-
-          // Store contract info for later processing
-          this.storeContractInfo(imageInfo);
-
-          return renderImageAndLink(this.options, imageInfo);
-        } catch {
-          return 'Loading image...';
-        }
-      }
-      return originalCodeRenderer({ text: code, lang: language, escaped });
-    };
-
-    //Render inline images
-    renderer.codespan = (token: Tokens.Codespan) => {
-      const { text } = token;
-      if (text.startsWith('image')) {
-        try {
-          const jsonData = text.slice(5).trim();
-          const imageInfo = JSON.parse(jsonData);
-
-          if (imageInfo?.contract === 'N/A') {
-            return '';
-          }
-
-          // Store contract info for later processing
-          this.storeContractInfo(imageInfo);
-
-          return renderImageAndLink(this.options, imageInfo);
-        } catch {
-          return 'Loading image...';
-        }
-      }
-      if (text.startsWith('flag')) {
-        try {
-          const jsonData = text.slice(4).trim();
-          const flagInfo = JSON.parse(jsonData);
-          const { code, country } = flagInfo;
-
-          if (flagInfo?.code === 'XX') {
-            return 'N/A';
-          }
-
-          return `<div class="chat-message-flag-container">
-          <img src="https://public-assets-rp.s3.eu-central-1.amazonaws.com/flags/${code.toLowerCase()}.svg" alt="${country}" />
-          <span>${country}</span>
-          </div>`;
-        } catch {
-          return '';
-        }
-      }
-      return originalCodespanRenderer(token);
-    };
-
-    // Define our function with the correct runtime signature
-    const tableOverride = function (
-      this: Renderer,
-      header: string,
-      body: string
-    ): string {
-      const tableHtml = originalTableImpl.call(this, header, body);
-      return '<div style="overflow-x: auto;">' + tableHtml + '</div>';
-    };
-
-    // Assign with a cast through unknown to the type expected by the linter for the property
-    renderer.table = tableOverride as unknown as (
-      token: Tokens.Table
-    ) => string;
-
-    marked.use({ renderer });
-  }
-
-  private storeContractInfo(imageInfo: { contract: string }): void {
-    this.pendingContracts.add(imageInfo.contract);
   }
 
   private async processContractImages(messageId: string): Promise<void> {
@@ -1331,8 +1151,7 @@ export class ChatWidgetCore {
 
       // Parse markdown for bot messages if markdown is enabled
       if (message?.classList.contains('chat-message-bot')) {
-        const rawHtml = await marked(text);
-        textElement.innerHTML = rawHtml;
+        textElement.innerHTML = this.renderMarkdown(text);
         textElement.className = 'chat-message-text chat-message-markdown';
 
         if (textElement.querySelector('.chat-message-chart-container')) {
@@ -1447,8 +1266,9 @@ export class ChatWidgetCore {
     } else {
       // Parse markdown if the message is from the bot and markdown is enabled
       if (message.sender === 'bot') {
-        const rawHtml = await marked(processMessageText(message.text));
-        textElement.innerHTML = rawHtml;
+        textElement.innerHTML = this.renderMarkdown(
+          processMessageText(message.text)
+        );
         textElement.className += ' chat-message-markdown';
         // After setting innerHTML, find and render charts
         // This needs to be done *after* the message element is in the DOM.

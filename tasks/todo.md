@@ -24,9 +24,9 @@ Standard verification for every task: `npm test`, `npm run build`, `npm run lint
 **Description:** Move `setupMarkedRenderer` and the `marked()` calls out of `ChatWidget.ts` into a module that builds a per-instance `new Marked(...)`. Contract collection goes through a callback, not `this.pendingContracts`. No behavior change.
 
 **Acceptance criteria:**
-- [ ] `ChatWidgetCore` has no `marked.use`/`marked.setOptions`; each instance owns its renderer
-- [ ] Two widget instances on one page don't share renderer state (test)
-- [ ] Characterization tests for `chart`, `image`, inline `image{}`, `flag`, `report`, table, link output
+- [x] `ChatWidgetCore` has no `marked.use`/`marked.setOptions`; each instance owns its renderer
+- [x] Two widget instances on one page don't share renderer state (test)
+- [x] Characterization tests for `chart`, `image`, inline `image{}`, `flag`, `report`, table, link output
 
 **Verification:** tests green; manual: `npm run start:react`, send a message containing each block type (or use history).
 **Dependencies:** T1
