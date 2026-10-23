@@ -37,9 +37,9 @@ Standard verification for every task: `npm test`, `npm run build`, `npm run lint
 **Description:** Add `escapeHtml`/`escapeAttr` to `utils.ts`. Apply them to link `href`/`title`, report `name`/`role`/`contractId`, flag `country`, and image `data-contract` plus the `onLink` URL. Validate the flag `code` against `/^[a-z]{2}$/i`. Link renderer: allow only `http:`, `https:`, `mailto:`, relative; add `rel="noopener noreferrer"`.
 
 **Acceptance criteria:**
-- [ ] Payloads like `"><img src=x onerror=alert(1)>` in every field render as text (tests per renderer)
-- [ ] `[x](javascript:alert(1))` renders without a `javascript:` href
-- [ ] Invalid flag code renders nothing/`N/A`, never a URL
+- [x] Payloads like `"><img src=x onerror=alert(1)>` in every field render as text (tests per renderer)
+- [x] `[x](javascript:alert(1))` renders without a `javascript:` href
+- [x] Invalid flag code renders nothing/`N/A`, never a URL
 
 **Verification:** tests green.
 **Dependencies:** T2

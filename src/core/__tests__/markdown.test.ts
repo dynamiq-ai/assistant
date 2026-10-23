@@ -115,3 +115,92 @@ describe('createMarkdownRenderer', () => {
     expect(spec.mark.color).toBe('red');
   });
 });
+
+describe('createMarkdownRenderer escaping', () => {
+  const PAYLOAD = '"><img src=x onerror="alert(1)">';
+  const hasInjectedImg = (el: HTMLElement) =>
+    [...el.querySelectorAll('img')].some((img) => img.hasAttribute('onerror'));
+
+  it('does not allow javascript: links', () => {
+    const el = render('[x](javascript:alert(1))');
+
+    expect(el.innerHTML).not.toMatch(/javascript:/i);
+    expect(el.textContent?.trim()).toBe('x');
+  });
+
+  it('escapes link titles', () => {
+    const el = render(`[x](https://example.com '${PAYLOAD}')`);
+
+    expect(hasInjectedImg(el)).toBe(false);
+    expect(el.querySelector('a')?.getAttribute('title')).toBe(PAYLOAD);
+  });
+
+  it('adds rel=noopener noreferrer to links', () => {
+    const link = render('[x](https://example.com)').querySelector('a');
+
+    expect(link?.getAttribute('rel')).toBe('noopener noreferrer');
+  });
+
+  it('escapes report names, roles and contract ids', () => {
+    const el = render(
+      '```report\n' +
+        JSON.stringify({
+          name: PAYLOAD,
+          role: PAYLOAD,
+          contractId: PAYLOAD,
+          directReports: [{ name: PAYLOAD, role: PAYLOAD, contractId: PAYLOAD }],
+        }) +
+        '\n```',
+      { onImageBlock: async () => [] }
+    );
+
+    expect(hasInjectedImg(el)).toBe(false);
+    expect(el.querySelector('.chat-message-report-name')?.textContent).toBe(
+      PAYLOAD
+    );
+    expect(
+      el.querySelector('.chat-message-image-link-container')?.getAttribute(
+        'data-contract'
+      )
+    ).toBe(PAYLOAD);
+  });
+
+  it('escapes the flag country', () => {
+    const el = render(
+      '`flag' + JSON.stringify({ code: 'DE', country: PAYLOAD }) + '`'
+    );
+
+    expect(hasInjectedImg(el)).toBe(false);
+    expect(el.textContent).toContain(PAYLOAD);
+  });
+
+  it('does not build a flag URL from an invalid country code', () => {
+    const el = render('`flag{"code":"../../evil","country":"X"}`');
+
+    expect(el.querySelector('img')).toBeNull();
+  });
+
+  it('escapes image contract ids', () => {
+    const el = render(
+      '```image\n' + JSON.stringify({ contract: PAYLOAD }) + '\n```',
+      { onImageBlock: async () => [] }
+    );
+
+    expect(hasInjectedImg(el)).toBe(false);
+    expect(
+      el.querySelector('[data-contract]')?.getAttribute('data-contract')
+    ).toBe(PAYLOAD);
+  });
+
+  it('escapes onLink URLs and drops unsafe schemes', () => {
+    const quoted = render('```image\n{"contract":"c"}\n```', {
+      onLink: () => `https://example.com/${PAYLOAD}`,
+    });
+    const scripted = render('```image\n{"contract":"c"}\n```', {
+      onLink: () => 'javascript:alert(1)',
+    });
+
+    expect(hasInjectedImg(quoted)).toBe(false);
+    expect(scripted.querySelector('a')).toBeNull();
+  });
+});

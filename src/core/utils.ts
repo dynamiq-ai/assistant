@@ -120,28 +120,64 @@ export function processMessageText(text: string) {
   );
 }
 
+const HTML_ESCAPES: Record<string, string> = {
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  "'": '&#39;',
+};
+
+/**
+ * Escape a value for use in HTML text or a quoted attribute
+ */
+export function escapeHtml(value: unknown): string {
+  return String(value ?? '').replace(/[&<>"']/g, (char) => HTML_ESCAPES[char]);
+}
+
+const SAFE_URL_SCHEMES = ['http', 'https', 'mailto'];
+
+/**
+ * Return the URL if it is relative or uses an allowed scheme, otherwise null.
+ * Browsers ignore whitespace and control characters inside a scheme
+ * ("java\tscript:"), so they are stripped before checking.
+ */
+export function safeUrl(url: string | null | undefined): string | null {
+  if (!url) {
+    return null;
+  }
+  // eslint-disable-next-line no-control-regex
+  const normalized = url.replace(/[\u0000-\u0020\u007f]/g, '');
+  const scheme = /^([a-z][a-z0-9+.-]*):/i.exec(normalized)?.[1];
+  if (scheme && !SAFE_URL_SCHEMES.includes(scheme.toLowerCase())) {
+    return null;
+  }
+  return url.trim();
+}
+
 export const renderImageAndLink = (
   options: ChatWidgetOptions,
   imageInfo: { contract: string }
 ) => {
+  if (!options.onImageBlock && !options.onLink) {
+    return '';
+  }
   const contractId = crypto.randomUUID();
-  const contractLinkIcon = UIComponents.createContractLinkIcon();
-  return options.onImageBlock || options.onLink
-    ? `<div class="chat-message-image-link-container" data-contract-id="${contractId}" data-contract="${
-        imageInfo.contract
-      }">
+  const linkUrl = safeUrl(options.onLink?.(imageInfo));
+  return `<div class="chat-message-image-link-container" data-contract-id="${contractId}" data-contract="${escapeHtml(
+    imageInfo.contract
+  )}">
         ${
           options.onImageBlock
             ? `<img src="" class="chat-contract-image" style="display: none;" data-loading="true" />`
             : ''
         }
         ${
-          options.onLink?.(imageInfo)
-            ? `<a href="${options.onLink?.(
-                imageInfo
-              )}" target="_blank">${contractLinkIcon}</a>`
+          linkUrl
+            ? `<a href="${escapeHtml(
+                linkUrl
+              )}" target="_blank" rel="noopener noreferrer">${UIComponents.createContractLinkIcon()}</a>`
             : ''
         }
-        </div>`
-    : '';
+        </div>`;
 };
