@@ -117,6 +117,7 @@
     "marked": "17.0.1",
     "vega": "6.2.0",
     "vega-embed": "7.1.0",
+    "vega-interpreter": "2.2.1",
     "vega-lite": "6.4.2"
   },
   "alias": {

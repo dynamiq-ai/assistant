@@ -14,9 +14,9 @@ import {
   resizeInput,
 } from './utils';
 import { createMarkdownRenderer } from './markdown';
+import { embedChart } from './charts';
 import HistoryPanel from './HistoryPanel';
 import { Storage } from './Storage';
-import vegaEmbed from 'vega-embed';
 import { ARIA_LABELS, INPUT_V_PADDING, MAX_INPUT_HEIGHT } from './constants';
 import { UIComponents } from './components/UIComponents';
 
@@ -1386,7 +1386,11 @@ export class ChatWidgetCore {
           // We need to unescape it if vegaEmbed expects a raw string, or parse if it expects an object.
           // vegaEmbed can take a string spec.
           const chartSpec = JSON.parse(specString);
-          await vegaEmbed(`#${chartId}`, chartSpec, { actions: false });
+          await embedChart(
+            chartDiv,
+            chartSpec,
+            this.options.allowedResourceOrigins
+          );
         } catch {
           chartDiv.innerHTML = 'Error rendering chart data.';
         }

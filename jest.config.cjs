@@ -21,6 +21,8 @@ module.exports = {
   transformIgnorePatterns: ['/node_modules/(?!(marked|eventsource-parser)/)'],
   moduleNameMapper: {
     '\\.css$': '<rootDir>/src/test/styleMock.ts',
+    '^vega$': '<rootDir>/src/test/vegaMock.ts',
     '^vega-embed$': '<rootDir>/src/test/vegaEmbedMock.ts',
+    '^vega-interpreter$': '<rootDir>/src/test/vegaInterpreterMock.ts',
   },
 };

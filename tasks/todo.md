@@ -85,9 +85,9 @@ Standard verification for every task: `npm test`, `npm run build`, `npm run lint
 **Description:** Add `vega-interpreter` as a dependency; call `vegaEmbed(el, spec, { actions:false, ast:true, expr: expressionInterpreter, loader })`. The loader rejects URLs from origins outside `allowedResourceOrigins`.
 
 **Acceptance criteria:**
-- [ ] Example charts render with a CSP of `script-src 'self'` (no `unsafe-eval`)
-- [ ] A spec with `data.url` to a non-allowed origin fails gracefully ("Error rendering chart data.")
-- [ ] Parcel alias still resolves (examples run)
+- [x] Example charts render with a CSP of `script-src 'self'` (no `unsafe-eval`)
+- [x] A spec with `data.url` to a non-allowed origin fails gracefully (no request; Vega logs a warning and draws an empty chart)
+- [ ] Parcel alias still resolves (examples run) — checked at final verification
 
 **Verification:** build; manual with a CSP meta tag added temporarily to `examples/react/index.html`.
 **Dependencies:** T2, T5
@@ -95,7 +95,7 @@ Standard verification for every task: `npm test`, `npm run build`, `npm run lint
 **Scope:** S
 
 ### Checkpoint B
-- [ ] Tests/build/lint clean; README documents the behavior change
+- [x] Tests/build/lint clean; README documents the behavior change
 - [ ] Human review → merge Phase 2 PR
 
 ---

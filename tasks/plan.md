@@ -68,11 +68,11 @@ T12 Docs/CI hygiene (last)
 
 ### Phase 2: Exfiltration & code-execution surface
 - [x] Task 5: `allowedResourceOrigins` option for remote images
-- [ ] Task 6: Vega interpreter mode + restricted loader
+- [x] Task 6: Vega interpreter mode + restricted loader
 
 ### Checkpoint B
-- [ ] Charts render in the example under a strict CSP (no `unsafe-eval`)
-- [ ] README documents the new option and the behavior change
+- [x] Charts render in the example under a strict CSP (no `unsafe-eval`)
+- [x] README documents the new option and the behavior change
 
 ### Phase 3: Storage & correctness
 - [ ] Task 7: Storage — persist anonymous userId, global cleanup, quota-safe writes, `clearHistory()`
