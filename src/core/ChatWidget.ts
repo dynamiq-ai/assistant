@@ -5,29 +5,20 @@ import {
   CustomParams,
   HistoryChat,
   ContentTypes,
-  ReportPerson,
 } from './types';
 import { createParser, type EventSourceMessage } from 'eventsource-parser';
 import './styles.css';
 import {
   getRelativeTimeString,
   processMessageText,
-  renderImageAndLink,
   resizeInput,
-  updateChartCode,
 } from './utils';
-import { marked, Renderer, type Tokens } from 'marked';
+import { createMarkdownRenderer } from './markdown';
+import { embedChart } from './charts';
 import HistoryPanel from './HistoryPanel';
 import { Storage } from './Storage';
-import vegaEmbed from 'vega-embed';
 import { ARIA_LABELS, INPUT_V_PADDING, MAX_INPUT_HEIGHT } from './constants';
 import { UIComponents } from './components/UIComponents';
-
-// Configure marked for safe rendering
-marked.setOptions({
-  gfm: true,
-  breaks: true,
-});
 
 export class ChatWidgetCore {
   private readonly container: HTMLElement;
@@ -43,8 +34,15 @@ export class ChatWidgetCore {
   private params: CustomParams;
   private storage: Storage;
   private abortController: AbortController | null = null;
-  private pendingContracts: Set<string> = new Set();
+  private readonly renderMarkdown: (text: string) => string;
   private manageToggleLabel: boolean = true;
+  private readonly handleToggleClick = () => this.toggle();
+  // Resources of rendered messages, released when the messages are removed
+  private objectUrls: string[] = [];
+  private chartFinalizers: (() => void)[] = [];
+  // Incremented whenever rendered messages are released, so charts that
+  // finish embedding afterwards know they belong to removed messages
+  private renderGeneration = 0;
   private progressMessageInterval: NodeJS.Timeout | null = null;
   private progressMessages: string[] = [
     'Sharpening my virtual pencil…',
@@ -76,13 +74,15 @@ export class ChatWidgetCore {
       maxFileSize: 5 * 1024 * 1024, // 5MB default
       acceptedFileTypes: '*', // All file types by default
       intermediateStreaming: true,
+      // Kept permissive for compatibility; [] restricts to same-origin
+      allowedResourceOrigins: ['*'],
       ...options,
     };
 
     this.params = {
-      userId: crypto.randomUUID(),
-      sessionId: crypto.randomUUID(),
       ...options.params,
+      userId: options.params?.userId ?? Storage.getAnonymousUserId(),
+      sessionId: options.params?.sessionId ?? crypto.randomUUID(),
     };
     Storage.userId = this.params.userId;
     this.apiConfig = this.options.api;
@@ -93,7 +93,7 @@ export class ChatWidgetCore {
       () => !!this.abortController
     );
 
-    this.setupMarkedRenderer();
+    this.renderMarkdown = createMarkdownRenderer(this.options);
     this.init();
     if (this.options.fullScreen) {
       this.toggleFullScreen();
@@ -103,240 +103,45 @@ export class ChatWidgetCore {
     }
   }
 
-  private setupMarkedRenderer(): void {
-    const renderer = new Renderer();
-    const originalCodeRenderer = renderer.code.bind(renderer);
-    const originalCodespanRenderer = renderer.codespan.bind(renderer);
-    const originalTableImpl = Renderer.prototype.table;
-
-    renderer.link = ({ href, title, text }) => {
-      return `<a href="${href}"${
-        title ? ` title="${title}"` : ''
-      } target="_blank">${text}</a>`;
-    };
-
-    renderer.code = ({ text: code, lang: language, escaped }) => {
-      // Render organization report
-      if (language === 'report') {
-        try {
-          const reportInfo: ReportPerson = JSON.parse(code);
-          const managerName = reportInfo?.name || '';
-          const managerRole = reportInfo?.role || '';
-          const managerContractId = reportInfo?.contractId || '';
-          const directReports: ReportPerson[] = Array.isArray(
-            reportInfo?.directReports
-          )
-            ? (reportInfo.directReports as ReportPerson[])
-            : [];
-          const managerContractInfo = { contract: managerContractId };
-
-          this.storeContractInfo(managerContractInfo);
-
-          const managerCard = `<div class="chat-message-report-card chat-message-report-card-manager" data-contract-id="${managerContractId}">
-            <div class="chat-message-report-text">
-              <div class="chat-message-report-name">${managerName}</div>
-              <div class="chat-message-report-role">${managerRole}</div>
-            </div>
-            ${renderImageAndLink(this.options, managerContractInfo)}
-          </div>`;
-
-          const reportsCards = directReports
-            .map((rep: ReportPerson) => {
-              const repName = rep?.name || '';
-              const repRole = rep?.role || '';
-              const repContractId = rep?.contractId || '';
-              const repContractInfo = { contract: repContractId };
-
-              this.storeContractInfo(repContractInfo);
-
-              return `<div class="chat-message-report-card" data-contract-id="${repContractId}">
-                <svg class="chat-message-children-report-arrow" width="27" height="104" viewBox="0 0 27 104" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M26.3536 99.6464C26.5488 99.8417 26.5488 100.158 26.3536 100.354L23.1716 103.536C22.9763 103.731 22.6597 103.731 22.4645 103.536C22.2692 103.34 22.2692 103.024 22.4645 102.828L25.2929 100L22.4645 97.1716C22.2692 96.9763 22.2692 96.6597 22.4645 96.4645C22.6597 96.2692 22.9763 96.2692 23.1716 96.4645L26.3536 99.6464ZM1 0H1.5V96H1H0.5V0H1ZM5 100V99.5H26V100V100.5H5V100ZM1 96H1.5C1.5 97.933 3.067 99.5 5 99.5V100V100.5C2.51472 100.5 0.5 98.4853 0.5 96H1Z" fill="#783F8E"/>
-                </svg>
-                <div class="chat-message-report-text">
-                  <div class="chat-message-report-name">${repName}</div>
-                  <div class="chat-message-report-role">${repRole}</div>
-                </div>
-                ${renderImageAndLink(this.options, repContractInfo)}
-              </div>`;
-            })
-            .join('');
-
-          const childrenBlock = directReports.length
-            ? `<div class="chat-message-report-children">${reportsCards}</div>`
-            : '';
-
-          return `<div class="chat-message-report-container">${managerCard}${childrenBlock}</div>`;
-        } catch {
-          return 'Building report...';
-        }
-      }
-      //Render Vega charts
-      if (language === 'chart') {
-        try {
-          const initialCode = JSON.parse(code);
-          const primaryThemeColor =
-            this.options.theme?.primaryColor || '#6c5ce7';
-
-          const updatedCode = updateChartCode(initialCode, primaryThemeColor);
-
-          const chartId = `vega-chart-${Math.random()
-            .toString(36)
-            .substring(7)}`;
-          const escapedSpec = JSON.stringify(updatedCode)
-            .replace(/"/g, '&quot;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;');
-          return `<div class="chat-message-chart-container">
-          <div id="${chartId}" class="chat-message-chart" data-chart-spec="${escapedSpec}"></div>
-          </div>`;
-        } catch {
-          return 'Building chart...';
-        }
-      }
-      //Render code block images
-      if (language === 'image') {
-        try {
-          const imageInfo = JSON.parse(code);
-
-          if (imageInfo?.contract === 'N/A') {
-            return '';
-          }
-
-          // Store contract info for later processing
-          this.storeContractInfo(imageInfo);
-
-          return renderImageAndLink(this.options, imageInfo);
-        } catch {
-          return 'Loading image...';
-        }
-      }
-      return originalCodeRenderer({ text: code, lang: language, escaped });
-    };
-
-    //Render inline images
-    renderer.codespan = (token: Tokens.Codespan) => {
-      const { text } = token;
-      if (text.startsWith('image')) {
-        try {
-          const jsonData = text.slice(5).trim();
-          const imageInfo = JSON.parse(jsonData);
-
-          if (imageInfo?.contract === 'N/A') {
-            return '';
-          }
-
-          // Store contract info for later processing
-          this.storeContractInfo(imageInfo);
-
-          return renderImageAndLink(this.options, imageInfo);
-        } catch {
-          return 'Loading image...';
-        }
-      }
-      if (text.startsWith('flag')) {
-        try {
-          const jsonData = text.slice(4).trim();
-          const flagInfo = JSON.parse(jsonData);
-          const { code, country } = flagInfo;
-
-          if (flagInfo?.code === 'XX') {
-            return 'N/A';
-          }
-
-          return `<div class="chat-message-flag-container">
-          <img src="https://public-assets-rp.s3.eu-central-1.amazonaws.com/flags/${code.toLowerCase()}.svg" alt="${country}" />
-          <span>${country}</span>
-          </div>`;
-        } catch {
-          return '';
-        }
-      }
-      return originalCodespanRenderer(token);
-    };
-
-    // Define our function with the correct runtime signature
-    const tableOverride = function (
-      this: Renderer,
-      header: string,
-      body: string
-    ): string {
-      const tableHtml = originalTableImpl.call(this, header, body);
-      return '<div style="overflow-x: auto;">' + tableHtml + '</div>';
-    };
-
-    // Assign with a cast through unknown to the type expected by the linter for the property
-    renderer.table = tableOverride as unknown as (
-      token: Tokens.Table
-    ) => string;
-
-    marked.use({ renderer });
-  }
-
-  private storeContractInfo(imageInfo: { contract: string }): void {
-    this.pendingContracts.add(imageInfo.contract);
-  }
-
-  private async processContractImages(messageId: string): Promise<void> {
-    if (this.pendingContracts.size === 0 || !this.options.onImageBlock) {
+  /**
+   * Resolve the contract images of a finished bot message via onImageBlock,
+   * then show them and keep the URLs on the message for history.
+   */
+  private async processContractImages(message: ChatMessage): Promise<void> {
+    if (!this.options.onImageBlock) {
       return;
     }
 
-    // Collect all contract IDs as array
-    const contractIds = Array.from(this.pendingContracts);
+    const containers = this.widgetElement?.querySelectorAll(
+      `#chat-message-${message.id} .chat-message-image-link-container[data-contract]`
+    );
+    const contractIds = [
+      ...new Set(
+        [...(containers ?? [])]
+          .map((container) => container.getAttribute('data-contract'))
+          .filter((contract): contract is string => !!contract)
+      ),
+    ];
+    if (contractIds.length === 0) {
+      return;
+    }
 
     try {
-      // Call onImageBlock with array of contract IDs (now async)
       const result = await this.options.onImageBlock(contractIds);
-
       // Handle both single string and array of strings
       const imageUrls = Array.isArray(result) ? result : [result];
 
-      // Store processed images in message data
-      const lastMessage = this.messages.find((m) => m.id === messageId);
-      if (lastMessage && imageUrls.length > 0) {
-        if (!lastMessage.processedImages) {
-          lastMessage.processedImages = {};
+      message.processedImages = message.processedImages ?? {};
+      contractIds.forEach((contractId, index) => {
+        if (imageUrls[index]) {
+          message.processedImages![contractId] = imageUrls[index];
         }
-        // Map contract IDs to image URLs
-        contractIds.forEach((contractId, index) => {
-          if (index < imageUrls.length && imageUrls[index]) {
-            lastMessage.processedImages![contractId] = imageUrls[index];
-          }
-        });
-      }
-
-      // Update images in the DOM
-      if (imageUrls.length > 0) {
-        const allImageContainers = this.widgetElement?.querySelectorAll(
-          `#chat-message-${messageId} .chat-message-image-link-container[data-contract-id]`
-        );
-
-        allImageContainers?.forEach((containerElement, index) => {
-          if (index < imageUrls.length) {
-            const imgElement =
-              containerElement?.querySelector<HTMLImageElement>(
-                '.chat-contract-image[data-loading="true"]'
-              );
-
-            if (imgElement && imageUrls[index]) {
-              imgElement.src = imageUrls[index];
-              imgElement.style.display = '';
-              imgElement.removeAttribute('data-loading');
-              imgElement.classList.add('chat-contract-image-loaded');
-            }
-          }
-        });
-      }
+      });
+      this.applyStoredImages(message);
     } catch (error) {
       console.error('Error processing contract images:', error);
-      // Optionally show error state in UI
-      const allImageContainers = this.widgetElement?.querySelectorAll(
-        `#chat-message-${messageId} .chat-message-image-link-container[data-contract-id]`
-      );
-
-      allImageContainers?.forEach((containerElement) => {
-        const imgElement = containerElement?.querySelector<HTMLImageElement>(
+      containers?.forEach((container) => {
+        const imgElement = container.querySelector<HTMLImageElement>(
           '.chat-contract-image[data-loading="true"]'
         );
         if (imgElement) {
@@ -345,9 +150,6 @@ export class ChatWidgetCore {
         }
       });
     }
-
-    // Clear pending contracts for this message
-    this.pendingContracts.clear();
   }
 
   private init(): void {
@@ -502,7 +304,7 @@ export class ChatWidgetCore {
       : this.widgetElement.querySelector('.chat-widget-toggle');
 
     if (toggleButton) {
-      toggleButton.addEventListener('click', () => this.toggle());
+      toggleButton.addEventListener('click', this.handleToggleClick);
     } else {
       console.warn('Toggle button not found');
     }
@@ -549,8 +351,11 @@ export class ChatWidgetCore {
         if (assistantMessageIndex === -1) {
           return;
         }
-        const assistantMessage = this.messages.at(assistantMessageIndex)!;
-        const userMessage = this.messages.at(assistantMessageIndex - 1)!;
+        const assistantMessage = this.messages[assistantMessageIndex];
+        const userMessage = this.messages
+          .slice(0, assistantMessageIndex)
+          .reverse()
+          .find((m) => m.sender === 'user');
         const feedback = target.dataset.feedback as 'positive' | 'negative';
 
         // Capture previous feedback state before updating
@@ -605,7 +410,7 @@ export class ChatWidgetCore {
         this.options.onFeedback?.(
           e,
           feedback,
-          [userMessage, assistantMessage],
+          userMessage ? [userMessage, assistantMessage] : [assistantMessage],
           this.params,
           prevFeedbackState,
           containerId
@@ -651,8 +456,18 @@ export class ChatWidgetCore {
       '.chat-widget-input textarea'
     );
     if (input) {
-      input.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter' && input.value.trim()) {
+      input.addEventListener('keydown', (e) => {
+        // Shift+Enter adds a new line; Enter during IME composition confirms a candidate
+        // (Safari reports the confirming Enter with keyCode 229 instead)
+        if (
+          e.key !== 'Enter' ||
+          e.shiftKey ||
+          e.isComposing ||
+          e.keyCode === 229
+        ) {
+          return;
+        }
+        if (input.value.trim()) {
           e.preventDefault();
           this.sendMessage(input.value);
           resizeInput(input, INPUT_V_PADDING, MAX_INPUT_HEIGHT);
@@ -863,7 +678,7 @@ export class ChatWidgetCore {
     }
 
     const message: ChatMessage = {
-      id: Date.now().toString(),
+      id: crypto.randomUUID(),
       text: text.trim(),
       sender: 'user',
       timestamp: Date.now(),
@@ -1127,6 +942,7 @@ export class ChatWidgetCore {
 
         if (data.output) {
           this.addBotMessage(data.output);
+          await this.finalizeLastMessage();
         } else {
           this.addBotMessage(
             "I received your message but I don't have a response."
@@ -1146,6 +962,15 @@ export class ChatWidgetCore {
         this.abortController = null;
         this.historyPanel.updateDisabledState();
         this.updateNewChatButtonState();
+        // Keep whatever was streamed before the failure (charts, images, feedback)
+        const lastMessage = this.messages.at(-1);
+        if (
+          lastMessage?.sender === 'bot' &&
+          !lastMessage.isComplete &&
+          lastMessage.text
+        ) {
+          await this.finalizeLastMessage();
+        }
         // Add an error message to the chat
         this.addBotMessage(
           'Sorry, there was an error processing your message. Please try again later.'
@@ -1164,8 +989,15 @@ export class ChatWidgetCore {
     // Mark the message as complete
     lastMessage.isComplete = true;
 
-    // Process pending contracts and update images (now async)
-    await this.processContractImages(lastMessage.id);
+    const messageElement = this.widgetElement?.querySelector<HTMLElement>(
+      `#chat-message-${lastMessage.id}`
+    );
+    if (messageElement) {
+      this.renderVegaChartsInElement(messageElement);
+    }
+
+    // Resolve contract images now that the message text is final
+    await this.processContractImages(lastMessage);
 
     // update the message in the history
     const chats = this.storage.getChats();
@@ -1296,7 +1128,7 @@ export class ChatWidgetCore {
     text: string,
     streaming?: boolean
   ): ((message: string) => void) | void {
-    const messageId = Date.now().toString();
+    const messageId = crypto.randomUUID();
     const botMessage: ChatMessage = {
       id: messageId,
       text,
@@ -1331,8 +1163,7 @@ export class ChatWidgetCore {
 
       // Parse markdown for bot messages if markdown is enabled
       if (message?.classList.contains('chat-message-bot')) {
-        const rawHtml = await marked(text);
-        textElement.innerHTML = rawHtml;
+        textElement.innerHTML = this.renderMarkdown(text);
         textElement.className = 'chat-message-text chat-message-markdown';
 
         if (textElement.querySelector('.chat-message-chart-container')) {
@@ -1340,9 +1171,8 @@ export class ChatWidgetCore {
         } else {
           message.classList.remove('chat-message--full-width');
         }
-
-        // After setting innerHTML, find and render charts
-        this.renderVegaChartsInElement(textElement as HTMLElement);
+        // Charts are embedded once the message is complete (finalizeLastMessage),
+        // not on every streamed chunk
       } else {
         textElement.textContent = text;
       }
@@ -1447,8 +1277,9 @@ export class ChatWidgetCore {
     } else {
       // Parse markdown if the message is from the bot and markdown is enabled
       if (message.sender === 'bot') {
-        const rawHtml = await marked(processMessageText(message.text));
-        textElement.innerHTML = rawHtml;
+        textElement.innerHTML = this.renderMarkdown(
+          processMessageText(message.text)
+        );
         textElement.className += ' chat-message-markdown';
         // After setting innerHTML, find and render charts
         // This needs to be done *after* the message element is in the DOM.
@@ -1557,6 +1388,10 @@ export class ChatWidgetCore {
     );
 
     chartDivs.forEach(async (chartDiv) => {
+      if (chartDiv.dataset.rendered) {
+        return;
+      }
+      chartDiv.dataset.rendered = 'true';
       const chartId = chartDiv.id;
       const specString = chartDiv.getAttribute('data-chart-spec');
       if (specString) {
@@ -1566,7 +1401,17 @@ export class ChatWidgetCore {
           // We need to unescape it if vegaEmbed expects a raw string, or parse if it expects an object.
           // vegaEmbed can take a string spec.
           const chartSpec = JSON.parse(specString);
-          await vegaEmbed(`#${chartId}`, chartSpec, { actions: false });
+          const generation = this.renderGeneration;
+          const { finalize } = await embedChart(
+            chartDiv,
+            chartSpec,
+            this.options.allowedResourceOrigins
+          );
+          if (generation === this.renderGeneration) {
+            this.chartFinalizers.push(finalize);
+          } else {
+            finalize();
+          }
         } catch {
           chartDiv.innerHTML = 'Error rendering chart data.';
         }
@@ -1619,7 +1464,21 @@ export class ChatWidgetCore {
     }
   }
 
+  private releaseMessageResources(): void {
+    this.objectUrls.forEach((url) => URL.revokeObjectURL(url));
+    this.objectUrls = [];
+    this.chartFinalizers.forEach((finalize) => finalize());
+    this.chartFinalizers = [];
+    this.renderGeneration++;
+  }
+
   public destroy(): void {
+    this.abortController?.abort();
+    this.getToggleButton()?.removeEventListener(
+      'click',
+      this.handleToggleClick
+    );
+    this.releaseMessageResources();
     if (this.widgetElement && this.container.contains(this.widgetElement)) {
       this.container.removeChild(this.widgetElement);
     }
@@ -1629,14 +1488,21 @@ export class ChatWidgetCore {
     this.stopProgressMessageRotation();
   }
 
+  /**
+   * Delete all stored chat history (e.g. on logout) and start a new chat
+   */
+  public clearHistory(): void {
+    this.abortController?.abort();
+    this.storage.clear();
+    this.historyPanel.refreshFromStorage();
+    this.startNewChat();
+  }
+
   public startNewChat(): void {
     this.params.sessionId = crypto.randomUUID();
 
     // Clear all messages
     this.messages.length = 0;
-
-    // Clear pending contracts
-    this.pendingContracts.clear();
 
     // Stop any ongoing progress message rotation
     this.stopProgressMessageRotation();
@@ -1648,6 +1514,7 @@ export class ChatWidgetCore {
     if (messagesContainer) {
       messagesContainer.innerHTML = '';
     }
+    this.releaseMessageResources();
 
     this.hideMessagesContainer();
     this.showWelcomeScreen();
@@ -1675,6 +1542,7 @@ export class ChatWidgetCore {
       const img = document.createElement('img');
       img.className = 'chat-message-file-preview';
       img.src = URL.createObjectURL(file as Blob);
+      this.objectUrls.push(img.src);
       img.alt = file.name;
       fileElement.appendChild(img);
     } else {
@@ -1737,7 +1605,11 @@ export class ChatWidgetCore {
   }
 
   public updateParams(params: ChatWidgetOptions['params']) {
-    this.params = { ...this.params, ...params };
+    // e.g. React hosts pass { userId: user?.id } while logged out
+    const definedParams = Object.fromEntries(
+      Object.entries(params ?? {}).filter(([, value]) => value !== undefined)
+    );
+    this.params = { ...this.params, ...definedParams };
     Storage.userId = this.params.userId;
   }
 
@@ -1766,6 +1638,7 @@ export class ChatWidgetCore {
       if (messagesContainer) {
         messagesContainer.innerHTML = '';
       }
+      this.releaseMessageResources();
       // how to keep order of messages
       for (const message of this.messages) {
         // skip empty messages since they are meaningless

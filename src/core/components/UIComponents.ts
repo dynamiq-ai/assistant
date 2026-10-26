@@ -189,7 +189,9 @@ export class UIComponents {
         const promptElement = document.createElement('button');
         promptElement.type = 'button';
         promptElement.className = 'chat-widget-prompt';
-        promptElement.innerHTML = `${prompt.icon} ${prompt.text}`;
+        // The icon may be HTML (e.g. a rendered ReactNode); the text is plain text
+        promptElement.innerHTML = `${prompt.icon} `;
+        promptElement.append(prompt.text);
         promptElement.dataset.prompt = prompt.text;
         promptsContainer.appendChild(promptElement);
       });

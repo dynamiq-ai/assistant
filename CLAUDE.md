@@ -15,10 +15,10 @@ npm run lint           # eslint src/**/*.{ts,tsx}
 npm run start:react    # parcel dev server for examples/react (imports from ../../src directly)
 npm run start:vanilla  # parcel dev server for examples/vanilla
 npm run build:examples # builds the React example to dist/examples (deployed to GitHub Pages)
-npm test               # jest — note: no jest config or test files currently exist
+npm test               # jest (jsdom); tests live in src/**/__tests__ and src/test
 ```
 
-There is no test suite yet; verify changes by running an example with Parcel and by `npm run build` + `npm run lint`.
+Verify changes with `npm test`, `npm run build` and `npm run lint`, and for UI changes by running an example with Parcel. Jest maps `vega`, `vega-embed`, `vega-interpreter` and CSS imports to stubs in `src/test/` (see `jest.config.cjs`); `src/test/setup.ts` polyfills `crypto.randomUUID` and the streams API for jsdom.
 
 ## Architecture
 
@@ -28,6 +28,8 @@ All behavior lives in a single framework-agnostic core class; the React and vani
 - `src/react/ChatWidget.tsx` — mounts `ChatWidgetCore` into a ref'd `<div>` once on mount. ReactNode props (`title`, `prompts[].icon`) are converted to HTML strings with `renderToString` before being passed to the core. Only `params` is reactive after mount (via `updateParams`); other prop changes are ignored.
 - `src/vanilla/ChatWidget.ts` — resolves a CSS selector and proxies `open/close/toggle/sendMessage/addMessage/destroy` to the core.
 - `src/core/HistoryPanel.ts` + `src/core/Storage.ts` — chat history sidebar. `Storage` is a singleton over `localStorage`, scoped by the static `Storage.userId`, with size-based cleanup of old chats. Selecting a chat calls back into `ChatWidgetCore.loadChatHistory(sessionId)`.
+- `src/core/markdown.ts` — `createMarkdownRenderer(options)`: a per-instance `Marked` with the custom renderers below, whose output always goes through a private DOMPurify instance. Bot text is untrusted (prompt injection), so every bot-HTML sink must use it; model values interpolated into templates must go through `escapeHtml`/`safeUrl` (`utils.ts`). The sanitizer also strips resources from origins outside `allowedResourceOrigins` (the widget defaults it to `['*']`; the modules themselves default to same-origin only).
+- `src/core/charts.ts` — `embedChart`: vega-embed with `vega-interpreter` (no `new Function`) and a loader limited to `allowedResourceOrigins`.
 - `src/core/components/UIComponents.ts` — HTML/SVG builders for widget pieces; `src/core/styles.css` is injected at runtime by `rollup-plugin-postcss` (`inject: true`), so there is no separate CSS file for consumers.
 - `src/core/types.ts` — `ChatWidgetOptions` (the public props/options contract, shared by both wrappers) and message types. Public options are documented in the README props/events tables — keep them in sync.
 
@@ -40,9 +42,9 @@ All behavior lives in a single framework-agnostic core class; the React and vani
 
 ### Message rendering
 
-Bot messages are rendered with `marked` using a custom renderer (`setupMarkedRenderer`) that gives special meaning to fenced code-block languages emitted by the agent:
-- ` ```chart ` — Vega-Lite spec; becomes a placeholder, then rendered with `vega-embed` (`renderVegaChartsInElement`). `updateChartCode` in `utils.ts` applies the theme's primary color.
-- ` ```image ` (and inline `` `image{...}` `` codespans) — JSON with a `contract` ID. IDs are collected in `pendingContracts` and resolved after the message completes via the async `onImageBlock(contractIds)` callback; resolved URLs are cached on the message as `processedImages` (and persisted to history). `contract: "N/A"` is skipped.
+Bot messages are rendered by `createMarkdownRenderer` (`markdown.ts`), which gives special meaning to fenced code-block languages emitted by the agent:
+- ` ```chart ` — Vega-Lite spec; becomes a placeholder, then embedded once the message is complete (`renderVegaChartsInElement` from `finalizeLastMessage`, or directly for complete/history messages). `updateChartCode` in `utils.ts` applies the theme's primary color. Views are finalized when messages are cleared.
+- ` ```image ` (and inline `` `image{...}` `` codespans) — JSON with a `contract` ID, rendered as a container with `data-contract`. After the message completes, `processContractImages` reads the IDs from that message's DOM and resolves them via the async `onImageBlock(contractIds)` callback; resolved URLs are cached on the message as `processedImages` (and persisted to history) and applied by `data-contract`. `contract: "N/A"` is skipped.
 - ` ```report ` — JSON rendered as manager/rep report cards, whose images also go through the contract flow.
 - Tables and links are also overridden.
 

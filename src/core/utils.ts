@@ -120,28 +120,97 @@ export function processMessageText(text: string) {
   );
 }
 
+const HTML_ESCAPES: Record<string, string> = {
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  "'": '&#39;',
+};
+
+/**
+ * Escape a value for use in HTML text or a quoted attribute
+ */
+export function escapeHtml(value: unknown): string {
+  return String(value ?? '').replace(/[&<>"']/g, (char) => HTML_ESCAPES[char]);
+}
+
+const SAFE_URL_SCHEMES = ['http', 'https', 'mailto'];
+
+/**
+ * Return the URL if it is relative or uses an allowed scheme, otherwise null.
+ * Browsers ignore whitespace and control characters inside a scheme
+ * ("java\tscript:"), so they are stripped before checking.
+ */
+export function safeUrl(url: string | null | undefined): string | null {
+  const trimmed = url?.trim();
+  if (!trimmed) {
+    return null;
+  }
+  // eslint-disable-next-line no-control-regex
+  const normalized = trimmed.replace(/[\u0000-\u0020\u007f]/g, '');
+  const scheme = /^([a-z][a-z0-9+.-]*):/i.exec(normalized)?.[1];
+  if (scheme && !SAFE_URL_SCHEMES.includes(scheme.toLowerCase())) {
+    return null;
+  }
+  return trimmed;
+}
+
+/**
+ * Whether the browser may load a resource (image, chart data, ...) from `url`.
+ * Same-origin, relative, data: and blob: URLs are always allowed; other origins
+ * must be listed in `allowedOrigins`, or `allowedOrigins` must contain '*'.
+ */
+export function isAllowedResourceUrl(
+  url: string,
+  allowedOrigins: string[] = []
+): boolean {
+  if (allowedOrigins.includes('*')) {
+    return true;
+  }
+  let parsed: URL;
+  try {
+    parsed = new URL(url, window.location.href);
+  } catch {
+    return false;
+  }
+  if (parsed.protocol === 'data:') {
+    return true;
+  }
+  const origins = [window.location.origin];
+  allowedOrigins.forEach((origin) => {
+    try {
+      origins.push(new URL(origin).origin);
+    } catch {
+      // ignore invalid entries
+    }
+  });
+  return origins.includes(parsed.origin);
+}
+
 export const renderImageAndLink = (
   options: ChatWidgetOptions,
   imageInfo: { contract: string }
 ) => {
+  if (!options.onImageBlock && !options.onLink) {
+    return '';
+  }
   const contractId = crypto.randomUUID();
-  const contractLinkIcon = UIComponents.createContractLinkIcon();
-  return options.onImageBlock || options.onLink
-    ? `<div class="chat-message-image-link-container" data-contract-id="${contractId}" data-contract="${
-        imageInfo.contract
-      }">
+  const linkUrl = safeUrl(options.onLink?.(imageInfo));
+  return `<div class="chat-message-image-link-container" data-contract-id="${contractId}" data-contract="${escapeHtml(
+    imageInfo.contract
+  )}">
         ${
           options.onImageBlock
             ? `<img src="" class="chat-contract-image" style="display: none;" data-loading="true" />`
             : ''
         }
         ${
-          options.onLink?.(imageInfo)
-            ? `<a href="${options.onLink?.(
-                imageInfo
-              )}" target="_blank">${contractLinkIcon}</a>`
+          linkUrl
+            ? `<a href="${escapeHtml(
+                linkUrl
+              )}" target="_blank" rel="noopener noreferrer">${UIComponents.createContractLinkIcon()}</a>`
             : ''
         }
-        </div>`
-    : '';
+        </div>`;
 };

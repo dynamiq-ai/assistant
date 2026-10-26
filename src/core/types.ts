@@ -62,6 +62,13 @@ export interface ChatWidgetOptions {
     text: string;
   }[];
   intermediateStreaming?: boolean;
+  /**
+   * Origins bot messages may load images and chart data from, e.g.
+   * ['https://cdn.example.com']. Same-origin is always allowed; '*' allows all.
+   * Defaults to ['*']; use [] or a list of origins to stop prompt-injected
+   * responses from leaking data through resource URLs.
+   */
+  allowedResourceOrigins?: string[];
   onFeedback?: (
     event: Event,
     feedback: 'positive' | 'negative',
