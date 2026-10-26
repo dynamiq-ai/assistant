@@ -110,7 +110,7 @@ T12 Docs/CI hygiene (last)
    string stripping, and the report-card colors. Move them behind options (breaking for that customer),
    or leave them and only escape them? *Default in this plan: leave them, escape them, and validate the flag code.*
 2. **`allowedResourceOrigins` default** — same-origin only (safest, may break someone), or `['*']` with
-   a deprecation warning first? *Default: same-origin only, shipped as a `fix` with a README note.*
+   a deprecation warning first? **Decided (2026-10-26): widget default is `['*']` for compatibility; README recommends `[]` or an explicit list.**
 3. **Endpoint authorization** — the README tells users to disable it. Is there a supported
    token/proxy flow on the Dynamiq side to document instead? (Docs-only change in T12 until answered.)
 4. **History when `userId` isn't provided** — persist an anonymous ID (plan default), or turn

@@ -197,3 +197,21 @@ describe('IME composition in Safari', () => {
     widget.destroy();
   });
 });
+
+describe('allowedResourceOrigins', () => {
+  const remoteImageSrc = (options: ConstructorParameters<typeof ChatWidgetCore>[1]) => {
+    const { container, widget } = mount(options);
+    widget.addBotMessage('![x](https://cdn.example.com/x.png)');
+    const src = container.querySelector('.chat-message-bot img')?.getAttribute('src');
+    widget.destroy();
+    return src;
+  };
+
+  it('allows remote images by default', () => {
+    expect(remoteImageSrc({})).toBe('https://cdn.example.com/x.png');
+  });
+
+  it('blocks remote images when set to an empty list', () => {
+    expect(remoteImageSrc({ allowedResourceOrigins: [] })).toBeNull();
+  });
+});

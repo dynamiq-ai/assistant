@@ -74,6 +74,8 @@ export class ChatWidgetCore {
       maxFileSize: 5 * 1024 * 1024, // 5MB default
       acceptedFileTypes: '*', // All file types by default
       intermediateStreaming: true,
+      // Kept permissive for compatibility; [] restricts to same-origin
+      allowedResourceOrigins: ['*'],
       ...options,
     };
 

